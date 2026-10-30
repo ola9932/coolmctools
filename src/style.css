@@ -631,15 +631,6 @@ h2 span {
   touch-action: none;
   cursor: grab;
 }
-.preview-caption {
-  position: absolute;
-  bottom: 13px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: #6c8398;
-  font-size: 9px;
-}
 .preview-controls {
   padding: 19px 17px;
   border-top: 1px solid var(--line);
