@@ -1,5 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { fillFace, shadePixel } from "../src/tools.js";
+test("face paint replaces every face pixel and preserves other regions", () => {
+  const data = new Uint8ClampedArray(16384);
+  data.fill(17);
+  const before = data.slice();
+  fillFace(data, { x: 8, y: 8, w: 8, h: 8 }, [30, 60, 90, 255]);
+  for (let y = 0; y < 64; y++)
+    for (let x = 0; x < 64; x++)
+      assert.deepEqual(
+        Array.from(data.slice((y * 64 + x) * 4, (y * 64 + x) * 4 + 4)),
+        x >= 8 && x < 16 && y >= 8 && y < 16
+          ? [30, 60, 90, 255]
+          : Array.from(before.slice((y * 64 + x) * 4, (y * 64 + x) * 4 + 4)),
+      );
+});
+test("burn and dodge preserve alpha, clamp RGB and ignore transparent pixels", () => {
+  const data = new Uint8ClampedArray(16384);
+  data.set([100, 150, 200, 128]);
+  shadePixel(data, 0, 0, "burn");
+  assert.deepEqual(Array.from(data.slice(0, 4)), [85, 128, 170, 128]);
+  shadePixel(data, 0, 0, "dodge");
+  assert.deepEqual(Array.from(data.slice(0, 4)), [111, 147, 183, 128]);
+  data.set([99, 88, 77, 0], 4);
+  shadePixel(data, 1, 0, "dodge");
+  assert.deepEqual(Array.from(data.slice(4, 8)), [99, 88, 77, 0]);
+});
 import { composeSkin, extractPalette } from "../src/reference-data.js";
 import {
   PARTS,

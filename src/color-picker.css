@@ -1,3 +1,12 @@
+@media (min-width: 701px) {
+  #stage:has(#texture-wrap:not([hidden])) #texture-wrap {
+    right: 235px;
+  }
+  #stage:has(#texture-wrap:not([hidden])) .inline-color-picker {
+    left: auto;
+    right: 16px;
+  }
+}
 .inline-color-picker {
   position: absolute;
   left: 80px;
@@ -135,7 +144,7 @@
     height: 660px;
   }
   .inline-color-picker {
-    left: 12px;
+    left: 80px;
     bottom: 48px;
     width: 180px;
   }

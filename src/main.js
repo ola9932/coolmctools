@@ -17,6 +17,7 @@ import { setupReferences } from "./references.js";
 import { readSkinPng } from "./reference-data.js";
 import { setupWorkspaceUI } from "./workspace-ui.js";
 import { createColorPicker } from "./color-picker.js";
+import { setupToolButtons, fillFace, shadePixel } from "./tools.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -50,6 +51,7 @@ let toastTimer;
 let sheetZoom = 1;
 let recent = [];
 let paused = false;
+const shadedPixels = new Set();
 
 function snapshot() {
   return { data: state.data.slice(), model: state.model };
@@ -184,6 +186,7 @@ function finishStroke() {
   if (!stroke) return;
   commit(stroke);
   stroke = null;
+  shadedPixels.clear();
   previous = null;
   if (views) views.editor.controls.enabled = true;
 }
@@ -254,17 +257,25 @@ function paint(hit) {
     return;
   }
   const color = state.tool === "eraser" ? [0, 0, 0, 0] : rgba(state.color);
-  if (state.tool === "fill") {
+  const applyPixel = (x, y) => {
+    if (state.tool === "burn" || state.tool === "dodge") {
+      const key = y * SIZE + x;
+      if (shadedPixels.has(key)) return;
+      shadedPixels.add(key);
+      shadePixel(state.data, x, y, state.tool);
+    } else putPixel(state.data, x, y, color);
+  };
+  if (state.tool === "bucket") {
+    fillFace(state.data, hit.region, color);
+  } else if (state.tool === "fill") {
     floodFill(state.data, hit.x, hit.y, color, hit.region);
   } else if (
     previous &&
     previous.part === hit.part &&
     previous.face === hit.face
   ) {
-    line(previous.x, previous.y, hit.x, hit.y, (x, y) =>
-      putPixel(state.data, x, y, color),
-    );
-  } else putPixel(state.data, hit.x, hit.y, color);
+    line(previous.x, previous.y, hit.x, hit.y, applyPixel);
+  } else applyPixel(hit.x, hit.y);
   previous = hit;
   refresh();
 }
@@ -276,6 +287,7 @@ function hover(hit) {
   views?.renderGrid(hit);
   drawSheet();
 }
+setupToolButtons();
 for (const canvas of [$("#editor-canvas"), sheet]) {
   canvas.addEventListener("contextmenu", (event) => event.preventDefault());
   canvas.addEventListener("pointerdown", (event) => {
@@ -302,9 +314,9 @@ for (const canvas of [$("#editor-canvas"), sheet]) {
     stroke = snapshot();
     if (views) views.editor.controls.enabled = false;
     canvas.setPointerCapture(event.pointerId);
-    if (state.tool !== "eraser") useColor();
+    if (["pen", "fill", "bucket"].includes(state.tool)) useColor();
     paint(hit);
-    if (state.tool === "fill") finishStroke();
+    if (["fill", "bucket"].includes(state.tool)) finishStroke();
   });
   canvas.addEventListener("pointermove", (event) => {
     const hit = getHit(event, canvas);
@@ -513,9 +525,16 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   if (event.ctrlKey || event.metaKey) return;
-  const tool = { b: "pen", e: "eraser", g: "fill", i: "picker", r: "rotate" }[
-    key
-  ];
+  const tool = {
+    b: "pen",
+    e: "eraser",
+    g: "fill",
+    i: "picker",
+    r: "rotate",
+    f: "bucket",
+    o: "burn",
+    d: "dodge",
+  }[key];
   if (tool) {
     event.preventDefault();
     setTool(tool);
