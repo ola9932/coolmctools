@@ -60,6 +60,11 @@ test("one-page references preserve editing, compose reversibly, extract colors a
   await page.locator("#palette-layer").selectOption("base");
   await expect(page.locator("#extracted-colors button")).toHaveCount(1);
   await page.locator("#extracted-colors button").click();
+  await expect(page.locator("#extracted-colors button")).not.toContainText("#");
+  await expect(page.locator("#extracted-colors button")).toHaveAttribute(
+    "title",
+    /#FF00FF/,
+  );
   await page.locator("#pin-color").click();
   await expect(page.locator("#pinned-colors")).toContainText("#FF00FF");
   await page.locator("#compose-controls summary").click();
@@ -137,6 +142,11 @@ test("rectangle copy, model mismatch, reference picker and removal are isolated"
   await page.locator("#reference-pick").click();
   await page.locator("#ref-sheet").scrollIntoViewIfNeeded();
   box = await page.locator("#ref-sheet").boundingBox();
+  await page.mouse.move(
+    box.x + (8.5 / 64) * box.width,
+    box.y + (8.5 / 64) * box.height,
+  );
+  await expect(page.locator(".pixel-magnifier")).toBeVisible();
   await page.mouse.click(
     box.x + (8.5 / 64) * box.width,
     box.y + (8.5 / 64) * box.height,

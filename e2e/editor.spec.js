@@ -71,6 +71,7 @@ test("overlay edits, fill, eraser, picker, visibility and invalid files", async 
   await waitSaved(page);
   const initial = await saved(page);
   await page.locator('[data-view="2d"]').click();
+  await page.locator("#layer-menu summary").click();
   await page.locator('input[name="layer"][value="overlay"]').check();
   await page.locator("#hex").fill("#FF0000");
   await page.locator("#hex").press("Tab");
@@ -102,8 +103,10 @@ test("overlay edits, fill, eraser, picker, visibility and invalid files", async 
   await page.locator('[data-tool="picker"]').click();
   await clickPixel(41, 8);
   await expect(page.locator("#hex")).toHaveValue("#FF0000");
+  await page.locator("#layer-menu summary").click();
   await page.locator("#overlay-visible").uncheck();
   await expect(page.locator('input[name="layer"][value="base"]')).toBeChecked();
+  await page.locator("#parts-menu summary").click();
   await page
     .locator("#parts label")
     .filter({ hasText: "머리" })
