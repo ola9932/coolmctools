@@ -47,6 +47,36 @@ test("one-page references preserve editing, compose reversibly, extract colors a
     .locator("#reference-select option")
     .evaluateAll((nodes) => nodes.map((node) => node.value));
   await page.locator("#reference-select").selectOption(options[0]);
+  await expect(page.locator("#reference-part")).toHaveCount(0);
+  await expect(page.locator("#reference-layer")).toHaveCount(0);
+  await expect
+    .poll(async () => {
+      const a = await page.locator("#stage").boundingBox();
+      const b = await page.locator(".reference-stage").boundingBox();
+      return Math.max(
+        Math.abs(a.y - b.y),
+        Math.abs(a.height - b.height),
+        Math.abs(a.width - b.width),
+      );
+    })
+    .toBeLessThan(2);
+  await page.locator("#reference-view").click();
+  const sample = () =>
+    page
+      .locator("#ref-sheet")
+      .evaluate((canvas) =>
+        Array.from(canvas.getContext("2d").getImageData(102, 102, 1, 1).data),
+      );
+  expect((await sample()).slice(0, 3)).toEqual([255, 0, 255]);
+  await page.locator("#parts-menu summary").click();
+  await page.locator("#parts label").first().locator("input").uncheck();
+  expect((await sample()).slice(0, 3)).not.toEqual([255, 0, 255]);
+  await page.locator("#parts label").first().locator("input").check();
+  await page.locator("#layer-menu summary").click();
+  await page.locator("#base-visible").uncheck();
+  expect((await sample()).slice(0, 3)).not.toEqual([255, 0, 255]);
+  await page.locator("#base-visible").check();
+  await page.locator("#reference-view").click();
   const width = (await page.locator("#stage").boundingBox()).width;
   await page.locator("#reference-toggle").uncheck();
   expect((await page.locator("#stage").boundingBox()).width).toBeGreaterThan(

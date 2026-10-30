@@ -5,6 +5,42 @@
   padding: 0;
   background: transparent;
 }
+@media (min-width: 701px) {
+  .workspace.integrated.has-side.comparing {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 0;
+  }
+  .comparing > .editor-panel {
+    border-radius: 12px 0 0 12px;
+    border-right: 0;
+  }
+  .comparing > .reference-panel {
+    border-radius: 0 12px 12px 0;
+    border-left: 0;
+  }
+  .comparing > .editor-panel > .panel-bar {
+    height: var(--compare-header-height, 110px);
+  }
+  .comparing .reference-stage {
+    height: var(--compare-stage-height, 590px);
+  }
+  .comparing #stage,
+  .comparing .reference-stage {
+    background: #223140;
+  }
+  .comparing .reference-stage:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(#667b8c44 0.8px, transparent 0.8px);
+    background-size: 22px 22px;
+  }
+  :root[data-theme="light"] .comparing #stage,
+  :root[data-theme="light"] .comparing .reference-stage {
+    background: #dce6f0;
+  }
+}
 .workspace-bar {
   display: flex;
   align-items: center;

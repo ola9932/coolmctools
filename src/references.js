@@ -39,7 +39,6 @@ export function setupReferences(api) {
     `<section class="reference-panel panel" hidden aria-label="레퍼런스 스킨">
     <div class="reference-head"><select id="reference-select" aria-label="레퍼런스 선택"></select><button id="reference-replace">교체</button><button id="reference-remove">제거</button><input id="reference-replace-file" type="file" accept="image/png,.png" hidden /></div>
     <div class="reference-controls"><label>모델 <select id="reference-model"><option value="default">Classic · 4px</option><option value="slim">Slim · 3px</option></select></label><label><input id="reference-sync" type="checkbox" checked /> 시점 동기화</label><button id="reference-view">2D 펼침도</button><button id="reference-pick" aria-pressed="false">색상 선택</button></div>
-    <div class="reference-controls"><label>부위 <select id="reference-part"><option value="all">전체</option></select></label><label>표시 <select id="reference-layer"><option value="both">기본층 + 외부층</option><option value="base">기본층</option><option value="overlay">외부층</option></select></label></div>
     <div class="reference-stage"><canvas id="ref-canvas" aria-label="읽기 전용 레퍼런스 3D"></canvas><div class="reference-sheet-wrap" hidden><canvas id="ref-sheet" width="768" height="768" aria-label="레퍼런스 2D 펼침도"></canvas></div><div class="reference-empty"><strong>함께 볼 스킨을 추가하세요</strong><p>64×64 PNG · 최대 8개<br />현재 작업은 그대로 유지됩니다.</p><button id="reference-empty-add">PNG 불러오기</button></div></div>
     <div class="reference-readout" id="reference-readout">드래그로 회전 · 색상 선택을 켜고 픽셀 클릭</div>
     <details id="compose-controls"><summary>부위 / 영역 합성</summary><p>레퍼런스의 같은 부위·좌표를 편집 스킨에 복사합니다. 옷·머리카락만 복사하려면 외부층 또는 사각형 영역을 선택하세요.</p><div class="composition-parts" id="compose-parts"></div>
@@ -53,7 +52,7 @@ export function setupReferences(api) {
     `<dialog class="compose-dialog" id="compose-dialog"><h2>합성 결과 미리보기</h2><p id="compose-summary"></p><div class="compose-preview"><canvas id="compose-canvas" aria-label="합성 결과 3D 미리보기"></canvas><canvas id="compose-fallback" width="64" height="64" hidden aria-label="합성 결과 펼침도"></canvas></div><p>적용 전에는 작업 스킨이 바뀌지 않습니다. 적용 후 실행 취소로 되돌릴 수 있습니다.</p><div class="reference-actions"><button id="compose-cancel">취소</button><button id="compose-apply" class="primary">적용</button></div></dialog>`,
   );
   for (const [key, part] of Object.entries(PARTS)) {
-    for (const id of ["reference-part", "palette-part"]) {
+    for (const id of ["palette-part"]) {
       const option = new Option(part.label, key);
       $(`#${id}`).add(option);
     }
@@ -92,10 +91,36 @@ export function setupReferences(api) {
   const sheet = $("#ref-sheet"),
     sheetContext = sheet.getContext("2d");
   const current = () => references.find((item) => item.id === selectedId);
-  const displayedParts = () =>
-    $("#reference-part").value === "all"
-      ? Object.keys(PARTS)
-      : [$("#reference-part").value];
+  const displayedParts = () => [...api.state.visible];
+  const displayedLayers = () =>
+    ["base", "overlay"].filter((layer) =>
+      layer === "base" ? api.state.baseVisible : api.state.overlayVisible,
+    );
+  const top = document.createElement("div");
+  top.className = "reference-top";
+  $(".reference-head").before(top);
+  top.append($(".reference-head"), $(".reference-controls"));
+  function alignComparison() {
+    const comparing =
+      side === "reference" &&
+      $("#reference-layout").value === "split" &&
+      innerWidth > 700;
+    workspace.classList.toggle("comparing", comparing);
+    if (comparing) {
+      workspace.style.setProperty(
+        "--compare-stage-height",
+        `${$("#stage").clientHeight}px`,
+      );
+      workspace.style.setProperty(
+        "--compare-header-height",
+        `${top.getBoundingClientRect().height}px`,
+      );
+    }
+  }
+  const comparisonObserver = new ResizeObserver(alignComparison);
+  comparisonObserver.observe($("#stage"));
+  comparisonObserver.observe(top);
+  window.addEventListener("resize", alignComparison);
   function persist() {
     try {
       localStorage.setItem(
@@ -187,6 +212,7 @@ export function setupReferences(api) {
     if (referenceViewer)
       referenceViewer.renderPaused = side !== "reference" || view2d;
     if (api.views) api.views.preview.renderPaused = side !== "animation";
+    alignComparison();
     setSettingsButton();
     if (save) persist();
   }
@@ -219,6 +245,8 @@ export function setupReferences(api) {
   function synchronize(from, to) {
     if (!syncingEnabled || syncBusy || !from || !to) return;
     syncBusy = true;
+    to.camera.fov = from.camera.fov;
+    to.camera.updateProjectionMatrix();
     to.camera.position.copy(from.camera.position);
     to.controls.target.copy(from.controls.target);
     to.controls.update();
@@ -271,13 +299,9 @@ export function setupReferences(api) {
     sheetContext.clearRect(0, 0, 768, 768);
     if (!current()) return;
     sheetContext.imageSmoothingEnabled = false;
-    sheetContext.drawImage(canvas, 0, 0, 768, 768);
     sheetContext.fillStyle = "#101722aa";
     sheetContext.fillRect(0, 0, 768, 768);
-    const layers =
-      $("#reference-layer").value === "both"
-        ? ["base", "overlay"]
-        : [$("#reference-layer").value];
+    const layers = displayedLayers();
     for (const part of displayedParts())
       for (const layer of layers)
         for (const r of faces(part, layer, current().model)) {
@@ -314,6 +338,16 @@ export function setupReferences(api) {
       );
     }
   }
+  function syncVisibility() {
+    if (referenceViewer)
+      for (const part of Object.keys(PARTS)) {
+        const body = referenceViewer.playerObject.skin[part];
+        body.visible = api.state.visible.has(part);
+        body.innerLayer.visible = api.state.baseVisible;
+        body.outerLayer.visible = api.state.overlayVisible;
+      }
+    drawSheet();
+  }
   function syncReference() {
     magnifier.hide();
     const item = current();
@@ -338,8 +372,8 @@ export function setupReferences(api) {
       for (const part of Object.keys(PARTS)) {
         const body = referenceViewer.playerObject.skin[part];
         body.visible = displayedParts().includes(part);
-        body.innerLayer.visible = $("#reference-layer").value !== "overlay";
-        body.outerLayer.visible = $("#reference-layer").value !== "base";
+        body.innerLayer.visible = api.state.baseVisible;
+        body.outerLayer.visible = api.state.overlayVisible;
       }
       referenceViewer.controls.enabled = !picking;
       referenceViewer.renderPaused = side !== "reference" || view2d;
@@ -379,8 +413,6 @@ export function setupReferences(api) {
     syncReference();
     persist();
   };
-  for (const id of ["reference-layer", "reference-part"])
-    $(`#${id}`).onchange = () => syncReference();
   $("#reference-view").onclick = () => {
     view2d = !view2d || !api.views;
     syncReference();
@@ -489,12 +521,7 @@ export function setupReferences(api) {
     );
     const targets = [];
     for (const part of displayedParts())
-      for (const layer of ["base", "overlay"]) {
-        if (
-          $("#reference-layer").value !== "both" &&
-          $("#reference-layer").value !== layer
-        )
-          continue;
+      for (const layer of displayedLayers()) {
         const mesh =
           referenceViewer.playerObject.skin[part][
             layer === "base" ? "innerLayer" : "outerLayer"
@@ -568,10 +595,7 @@ export function setupReferences(api) {
       updateRectangle(point);
       event.preventDefault();
     } else if (picking) {
-      const layers =
-        $("#reference-layer").value === "both"
-          ? ["base", "overlay"]
-          : [$("#reference-layer").value];
+      const layers = displayedLayers();
       if (
         layers.some((layer) =>
           locate(point.x, point.y, layer, current().model, displayedParts()),
@@ -785,6 +809,7 @@ export function setupReferences(api) {
   let paletteTimer;
   return {
     refresh: () => {
+      syncVisibility();
       clearTimeout(paletteTimer);
       paletteTimer = setTimeout(renderPalette, 120);
     },
