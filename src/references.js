@@ -643,8 +643,12 @@ export function setupReferences(api) {
         count = document.createElement("small");
       dot.style.background = entry.color;
       count.textContent = `${entry.percentage.toFixed(1)}%`;
-      button.append(dot, entry.color.toUpperCase(), count);
-      button.title = `${entry.count}픽셀`;
+      button.append(dot, count);
+      button.title = `${entry.color.toUpperCase()} · ${entry.count}픽셀`;
+      button.setAttribute(
+        "aria-label",
+        `${entry.color.toUpperCase()} · ${entry.percentage.toFixed(1)}%`,
+      );
       button.onclick = () => api.setColor(entry.color);
       fragment.append(button);
     }
