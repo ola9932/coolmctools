@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>비교 작업실 목업 · CoolMC Tools</title>
+  </head>
+  <body>
+    <header>
+      <a href="/">▣ coolmc<span>tools</span></a
+      ><span class="muted">/ Skin Studio</span
+      ><b class="badge">인터랙티브 목업</b>
+    </header>
+    <main>
+      <div class="heading">
+        <div>
+          <small>YOUR SKIN, YOUR INSPIRATION</small>
+          <h1>비교하며 만드는 작업실</h1>
+          <p>편집 영역은 넓게. 레퍼런스는 필요할 때만.</p>
+        </div>
+        <a href="/" class="button">실제 편집기로 돌아가기 ↗</a>
+      </div>
+      <section class="layout-controls" aria-label="레이아웃 설정">
+        <label class="switch"
+          ><input id="reference-toggle" type="checkbox" checked /> 레퍼런스
+          보기</label
+        ><label
+          >배치
+          <select id="layout">
+            <option value="split">나란히 비교 · 추천</option>
+            <option value="float">작은 창으로 띄우기</option>
+          </select></label
+        ><label class="sync"
+          ><input id="sync" type="checkbox" checked /> 시점 동기화</label
+        ><button id="settings-toggle" aria-expanded="false">
+          편집 설정 열기</button
+        ><span id="mode-label">넓은 비교 모드</span>
+      </section>
+      <div class="workspace" id="workspace">
+        <nav class="tools" aria-label="도구 모양 예시">
+          <span class="selected">✎</span><span>▱</span><span>◩</span
+          ><span>⌖</span>
+          <hr />
+          <span>▧</span><span class="color-dot"></span><small>도구</small>
+        </nav>
+        <div class="canvases" id="canvases">
+          <section class="view edit">
+            <div class="view-header">
+              <div>
+                <span class="status-dot"></span><strong>편집 중인 스킨</strong
+                ><small>my-skin.png</small>
+              </div>
+              <span class="pill">편집 대상</span>
+            </div>
+            <div class="stage" id="edit-stage">
+              <canvas id="edit-canvas" aria-label="편집 스킨 3D 예시"></canvas>
+              <div class="stage-label">CLASSIC <span>64 × 64</span></div>
+              <div class="stage-note">드래그로 회전 · 휠로 확대</div>
+            </div>
+            <div class="view-footer">
+              <span>기본층 <span class="muted">+ 외부층</span></span
+              ><span id="edit-width"></span>
+            </div>
+          </section>
+          <section class="view reference" id="reference-panel">
+            <div class="view-header">
+              <div><strong>레퍼런스</strong><small>읽기 전용</small></div>
+              <button id="close-reference" aria-label="레퍼런스 닫기">×</button>
+            </div>
+            <div class="reference-picker">
+              <label for="reference-select">참고할 스킨</label
+              ><select id="reference-select">
+                <option value="0">01 · 라벤더 후디</option>
+                <option value="1">02 · 선셋 재킷</option>
+                <option value="2">03 · 오션 니트</option></select
+              ><span>예시 스킨 3개</span>
+            </div>
+            <div class="stage" id="reference-stage">
+              <canvas
+                id="reference-canvas"
+                aria-label="레퍼런스 스킨 3D 예시"
+              ></canvas>
+              <div class="stage-label">
+                REFERENCE <span id="reference-name">라벤더 후디</span>
+              </div>
+              <div class="stage-note">원본을 보존하면서 비교하세요</div>
+            </div>
+            <div class="reference-palette">
+              <span>레퍼런스 색상</span>
+              <div id="swatches"></div>
+              <span id="picked-color">색상을 눌러보세요</span>
+            </div>
+            <div class="view-footer">
+              <span>머리 · 몸통 · 팔 · 다리</span
+              ><span id="reference-width"></span>
+            </div>
+          </section>
+        </div>
+        <aside id="settings" hidden>
+          <h2>편집 설정</h2>
+          <p>자주 쓰는 도구는 왼쪽에,<br />상세 설정은 접을 수 있게.</p>
+          <label
+            >선택한 색상<input id="color" type="color" value="#68cbb1" /></label
+          ><label
+            >모델<select disabled>
+              <option>Classic · 팔 4px</option>
+            </select></label
+          >
+          <h3>편집 레이어</h3>
+          <div class="mock-option">◉ 기본층</div>
+          <div class="mock-option muted">○ 외부층</div>
+          <h3>신체 부위</h3>
+          <p>머리　몸통<br />왼팔　오른팔<br />왼다리　오른다리</p>
+          <small>설정 항목은 배치 예시입니다.</small>
+        </aside>
+      </div>
+      <div class="bottom">
+        <span id="hint"
+          >레퍼런스를 끄면 편집 화면이 전체 너비로 확장됩니다.</span
+        ><span
+          >화면 배치 검토용 · 실제 그리기 및 합성은 기존 편집기에서 확장
+          예정</span
+        >
+      </div>
+      <section class="decision">
+        <div>
+          <span>01 / SPACE</span>
+          <h2>켜고 끄기</h2>
+          <p>
+            참고가 끝나면 편집 공간을 즉시 되찾습니다. 선택한 레퍼런스는
+            유지됩니다.
+          </p>
+        </div>
+        <div>
+          <span>02 / LIBRARY</span>
+          <h2>여러 개 중 하나 선택</h2>
+          <p>
+            목록에 여러 스킨을 두되 한 번에 하나만 표시해 작업 공간을 지킵니다.
+          </p>
+        </div>
+        <div>
+          <span>03 / FOCUS</span>
+          <h2>설정은 접고, 모델은 크게</h2>
+          <p>
+            비교 중에는 애니메이션과 상세 설정을 상시 노출하지 않는 구성을
+            제안합니다.
+          </p>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/mockup.js"></script>
+  </body>
+</html>
