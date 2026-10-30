@@ -20,6 +20,7 @@ import {
   CrouchAnimation,
 } from "skinview3d";
 import { PARTS, faces, uvPixel } from "./skin.js";
+import { SittingAnimation, LyingAnimation, applyPose } from "./poses.js";
 
 export function createViews(source, getState) {
   const texture = new CanvasTexture(source);
@@ -172,9 +173,12 @@ export function createViews(source, getState) {
     wave: WaveAnimation,
     fly: FlyingAnimation,
     crouch: CrouchAnimation,
+    sit: SittingAnimation,
+    lie: LyingAnimation,
   };
   function animate(name, speed = 1, paused = false) {
     preview.animation = new animations[name]();
+    if (name === "sit" || name === "lie") applyPose(preview.playerObject, name);
     preview.animation.speed = speed;
     preview.animation.paused = paused;
   }
