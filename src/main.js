@@ -15,6 +15,7 @@ import {
 import { createViews } from "./views.js";
 import { setupReferences } from "./references.js";
 import { readSkinPng } from "./reference-data.js";
+import { setupWorkspaceUI, updateColorReadout } from "./workspace-ui.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -197,6 +198,7 @@ function setColor(color) {
   $("#hex").value = state.color.toUpperCase();
   $("#color-label").textContent = state.color.toUpperCase();
   if ($("#quick-color")) $("#quick-color").value = state.color;
+  updateColorReadout(state.color);
 }
 function useColor() {
   recent = [
@@ -526,3 +528,5 @@ referenceTools = setupReferences({
   commit,
   finishStroke,
 });
+setupWorkspaceUI();
+updateColorReadout(state.color);
