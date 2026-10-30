@@ -5,3 +5,8 @@
 *.key
 .DS_Store
 Thumbs.db
+node_modules/
+dist/
+.preview/
+test-results/
+playwright-report/

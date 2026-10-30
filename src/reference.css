@@ -1,0 +1,454 @@
+#quick-color {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.workspace-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #19222e;
+  border: 1px solid #344052;
+  border-radius: 9px;
+  padding: 11px 15px;
+  margin-bottom: 14px;
+  font-size: 11px;
+}
+.workspace-bar label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.workspace-bar .tabs {
+  margin-left: auto;
+}
+.workspace-bar select {
+  width: auto;
+}
+.workspace.integrated {
+  grid-template-columns: minmax(0, 1fr);
+}
+.workspace.integrated.has-side {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+.integrated > .editor-panel {
+  min-width: 0;
+}
+.integrated > .settings-panel {
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  order: 4;
+}
+.integrated > .settings-panel .setting-section {
+  border-right: 1px solid var(--line);
+  border-bottom: 0;
+}
+.integrated > .preview-panel {
+  grid-column: auto;
+  display: block;
+}
+.integrated .preview-stage {
+  height: 430px;
+}
+.integrated .preview-controls {
+  border-left: 0;
+}
+.integrated .stage {
+  height: 590px;
+}
+.reference-panel {
+  min-width: 0;
+}
+.reference-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.reference-head select {
+  flex: 1;
+  min-width: 0;
+}
+.reference-head button {
+  white-space: nowrap;
+  padding: 9px;
+}
+.reference-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 10px;
+}
+.reference-controls select {
+  width: auto;
+  font-size: 10px;
+  padding: 7px;
+}
+.reference-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.reference-stage {
+  height: 390px;
+  position: relative;
+  background: radial-gradient(ellipse at center, #3b4058, #202c3b 75%);
+}
+.reference-stage canvas {
+  display: block;
+  touch-action: none;
+}
+.reference-stage #ref-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+.reference-sheet-wrap {
+  height: 100%;
+  overflow: auto;
+  padding: 10px;
+  display: grid;
+  place-items: center;
+}
+#ref-sheet {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+  background: conic-gradient(
+    #344255 25%,
+    #243141 0 50%,
+    #344255 0 75%,
+    #243141 0
+  );
+  background-size: 16px 16px;
+  cursor: crosshair;
+}
+.reference-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  color: #9cacc0;
+  background: #202c3b;
+  z-index: 2;
+  text-align: center;
+  padding: 20px;
+}
+.reference-empty strong {
+  font-size: 16px;
+}
+.reference-empty p {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.reference-readout {
+  min-height: 34px;
+  padding: 9px 14px;
+  color: #a7c1d6;
+  font-size: 10px;
+  border-top: 1px solid var(--line);
+}
+.reference-panel details,
+.palette-panel {
+  padding: 14px;
+  border-top: 1px solid var(--line);
+}
+.reference-panel summary {
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.reference-panel details > p {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #91a5ba;
+  margin: 12px 0;
+}
+.composition-parts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+  font-size: 11px;
+}
+.composition-parts label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.reference-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.reference-fields label {
+  font-size: 10px;
+  color: #99acc2;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.reference-fields select {
+  font-size: 11px;
+}
+.reference-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.reference-actions button {
+  font-size: 10px;
+}
+.selection-info {
+  font-size: 10px;
+  color: #9fe6c5;
+  margin-top: 12px;
+  line-height: 1.7;
+}
+.palette-panel {
+  grid-column: 1/-1;
+}
+.palette-panel summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+.palette-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+.palette-filters label {
+  font-size: 10px;
+  color: #9cafc2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.palette-filters select {
+  width: auto;
+  max-width: 160px;
+}
+.extracted-colors {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  max-height: 180px;
+  overflow: auto;
+}
+.extracted-colors button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  font-size: 10px;
+}
+.extracted-colors i {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ffffff40;
+  border-radius: 4px;
+}
+.extracted-colors small {
+  color: #8da4b8;
+}
+.palette-empty {
+  color: #8fa5b9;
+  font-size: 11px;
+}
+.pinned-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  font-size: 10px;
+  color: #8fa5b9;
+}
+.pinned-row button {
+  padding: 6px;
+  font-size: 10px;
+}
+.palette-note {
+  font-size: 10px;
+  color: #839ab0;
+  margin: 12px 0 0;
+}
+.mobile-switch {
+  display: none;
+}
+.compose-dialog {
+  width: min(600px, 95vw);
+  max-height: 95vh;
+  background: #192430;
+  color: #dce5ef;
+  border: 1px solid #607c82;
+  border-radius: 12px;
+  padding: 20px;
+}
+.compose-dialog::backdrop {
+  background: #000b;
+}
+.compose-dialog h2 {
+  font-size: 17px;
+}
+.compose-dialog p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #a2b8cb;
+}
+.compose-preview {
+  height: 340px;
+  background: #263549;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 15px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.compose-preview canvas {
+  max-width: 100%;
+  image-rendering: pixelated;
+}
+.compose-dialog .reference-actions {
+  justify-content: flex-end;
+}
+.workspace.integrated.float-reference.has-side {
+  grid-template-columns: 1fr;
+  position: relative;
+}
+.float-reference .reference-panel {
+  position: absolute;
+  right: 16px;
+  top: 64px;
+  width: 330px;
+  max-height: 530px;
+  overflow: auto;
+  z-index: 6;
+  box-shadow: 0 12px 40px #0008;
+}
+.float-reference .reference-stage {
+  height: 260px;
+}
+.float-reference .reference-controls {
+  gap: 5px;
+}
+.float-reference .reference-head {
+  flex-wrap: wrap;
+}
+.float-reference .reference-fields {
+  grid-template-columns: 1fr;
+}
+.float-reference .composition-parts {
+  grid-template-columns: 1fr 1fr;
+}
+#ref-storage-status {
+  font-size: 10px;
+  color: #8fb5a3;
+  padding: 0 14px 12px;
+}
+.workspace-bar .reference-layout-label {
+  margin-left: auto;
+}
+.workspace-bar .reference-layout-label + .tabs {
+  margin-left: 0;
+}
+@media (max-width: 1150px) {
+  .integrated .stage {
+    height: 560px;
+  }
+  .integrated > .preview-panel {
+    display: block;
+  }
+  .integrated > .settings-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+  .reference-head {
+    flex-wrap: wrap;
+  }
+  .reference-controls {
+    gap: 7px;
+  }
+}
+@media (max-width: 700px) {
+  .workspace.integrated,
+  .workspace.integrated.has-side {
+    display: flex;
+    flex-direction: column;
+  }
+  .integrated .stage {
+    height: 460px;
+  }
+  .integrated > .settings-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    order: 4;
+  }
+  .mobile-switch {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+  }
+  .mobile-switch button {
+    flex: 1;
+  }
+  .workspace-bar .tabs {
+    margin-left: 0;
+  }
+  .workspace-bar {
+    gap: 10px;
+  }
+  .reference-stage {
+    height: 360px;
+  }
+  .integrated.has-side.mobile-reference > .editor-panel {
+    display: none;
+  }
+  .integrated.has-side:not(.mobile-reference) > .reference-panel,
+  .integrated.has-side:not(.mobile-reference) > .preview-panel {
+    display: none;
+  }
+  .workspace.integrated.float-reference.has-side .reference-panel {
+    position: static;
+    width: 100%;
+    max-height: none;
+  }
+  .workspace-bar .reference-layout-label {
+    display: none;
+  }
+  .composition-parts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .palette-filters {
+    flex-direction: column;
+    align-items: start;
+  }
+  .reference-fields {
+    gap: 8px;
+  }
+  .compose-preview {
+    height: 280px;
+  }
+  .workspace-bar .mobile-switch button.active {
+    border-color: #9fe6c5;
+    color: #9fe6c5;
+  }
+}

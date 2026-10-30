@@ -1,0 +1,26 @@
+{
+  "name": "coolmctools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "test": "node --test tests/skin.test.js",
+    "test:e2e": "playwright test",
+    "lint": "eslint src tests e2e playwright.config.js",
+    "format": "prettier --write index.html src tests e2e package.json eslint.config.js playwright.config.js"
+  },
+  "dependencies": {
+    "skinview3d": "^3.4.2",
+    "three": "^0.156.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "vite": "^8.3.5"
+  }
+}
