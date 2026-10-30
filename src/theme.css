@@ -1,0 +1,113 @@
+:root[data-theme="light"] {
+  color-scheme: light;
+  color: #243449;
+  background: #f3f6fa;
+  --muted: #52687f;
+  --line: #c9d4df;
+  --accent: #21664c;
+  --panel: #fff;
+}
+:root[data-theme="light"]
+  :is(
+    .site-header,
+    .workspace-bar,
+    .panel-bar,
+    .setting-section,
+    .preview-controls,
+    .reference-head,
+    .reference-controls,
+    .reference-readout,
+    .view-footer,
+    .palette-panel,
+    .compose-dialog,
+    .always-tools
+  ) {
+  background: #fff;
+  color: #243449;
+  border-color: #c9d4df;
+}
+:root[data-theme="light"]
+  :is(
+    button,
+    select,
+    .tabs,
+    .camera-actions,
+    .toolbar,
+    .hex-field,
+    .layer-options label
+  ) {
+  background: #edf2f7;
+  color: #243449;
+  border-color: #bccbd8;
+}
+:root[data-theme="light"] :is(button.active, .tabs button.active, .primary) {
+  background: #c8eadb;
+  color: #164a37;
+  border-color: #43886c;
+}
+:root[data-theme="light"]
+  :is(.stage, .preview-stage, .reference-stage, .compose-preview) {
+  background: radial-gradient(ellipse at center, #eef3f9, #cbd9e8);
+}
+:root[data-theme="light"] .reference-empty {
+  background: #e7eef6;
+  color: #334a60;
+}
+:root[data-theme="light"]
+  :is(
+    p,
+    .field-caption,
+    .checkbox-row,
+    .parts label,
+    .editor-footer,
+    .workspace-footer,
+    .preview-controls p,
+    .reference-fields label,
+    .palette-filters label,
+    .palette-note,
+    .reference-readout,
+    .selection-info,
+    .compose-dialog p
+  ) {
+  color: #4a6176;
+}
+:root[data-theme="light"]
+  :is(
+    .stage-tag,
+    .stage-tag span,
+    #pixel-info,
+    .disclaimer,
+    .workspace-label,
+    .brand-light,
+    .local-badge,
+    .hex-field input,
+    .speed-label output,
+    h2 span
+  ) {
+  color: #3f586e;
+}
+:root[data-theme="light"] #pixel-info {
+  background: #eef4fad9;
+}
+:root[data-theme="light"] .layer-options label:has(input:checked) {
+  background: #dcefe6;
+  border-color: #4b9475;
+}
+:root[data-theme="light"] #texture-canvas {
+  background-color: #e7ecf2;
+  background-image: conic-gradient(
+    #c4cfdc 25%,
+    transparent 0 50%,
+    #c4cfdc 0 75%,
+    transparent 0
+  );
+}
+:root[data-theme="light"] #toast {
+  background: #e1f2e9;
+  color: #214f3c;
+  border-color: #4b9475;
+}
+#theme-toggle {
+  margin-left: 12px;
+  white-space: nowrap;
+}
