@@ -21,17 +21,6 @@ export function createMagnifier(source) {
       context.imageSmoothingEnabled = false;
       context.drawImage(
         source,
-        (point.x - 3) * 18,
-        (point.y - 3) * 18,
-        1,
-        1,
-        0,
-        0,
-        0,
-        0,
-      );
-      context.drawImage(
-        source,
         -(point.x - 3) * 18,
         -(point.y - 3) * 18,
         64 * 18,

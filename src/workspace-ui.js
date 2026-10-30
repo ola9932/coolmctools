@@ -57,6 +57,12 @@ export function setupWorkspaceUI() {
     });
   }
   window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !document.querySelector("dialog[open]")) {
+      document.querySelectorAll(".quick-menu").forEach((menu) => {
+        menu.open = false;
+      });
+      return;
+    }
     if (
       document.querySelector("dialog[open]") ||
       event.ctrlKey ||
@@ -72,10 +78,6 @@ export function setupWorkspaceUI() {
       menu.open = !menu.open;
       menu.querySelector("summary").focus();
     }
-    if (event.key === "Escape")
-      document.querySelectorAll(".quick-menu").forEach((menu) => {
-        menu.open = false;
-      });
   });
   document.addEventListener("pointerdown", (event) => {
     if (!event.target.closest(".quick-menu"))

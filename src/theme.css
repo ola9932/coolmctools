@@ -111,3 +111,10 @@
   margin-left: 12px;
   white-space: nowrap;
 }
+:root[data-theme="light"] .preview-controls > label,
+:root[data-theme="light"] .editor-footer,
+:root[data-theme="light"] .editor-footer kbd,
+:root[data-theme="light"] .workspace-footer,
+:root[data-theme="light"] #save-status {
+  color: #415c70;
+}
