@@ -1,4 +1,5 @@
 import "./reference.css";
+import { createMagnifier } from "./magnifier.js";
 import { SkinViewer } from "skinview3d";
 import { CanvasTexture, NearestFilter, Raycaster, Vector2 } from "three";
 import { PARTS, faces, locate, pixel, uvPixel } from "./skin.js";
@@ -87,6 +88,7 @@ export function setupReferences(api) {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 64;
   const context = canvas.getContext("2d");
+  const magnifier = createMagnifier(canvas);
   const sheet = $("#ref-sheet"),
     sheetContext = sheet.getContext("2d");
   const current = () => references.find((item) => item.id === selectedId);
@@ -313,6 +315,7 @@ export function setupReferences(api) {
     }
   }
   function syncReference() {
+    magnifier.hide();
     const item = current();
     if (item) {
       context.putImageData(new ImageData(item.data, 64, 64), 0, 0);
@@ -473,9 +476,8 @@ export function setupReferences(api) {
       `선택한 색상 ${hex(color).toUpperCase()} · ${x}, ${y}`;
   }
   const raycaster = new Raycaster();
-  $("#ref-canvas").addEventListener("pointerdown", (event) => {
-    if (!picking || !referenceViewer || !current() || event.button !== 0)
-      return;
+  function referencePoint(event) {
+    if (!picking || !referenceViewer || !current()) return null;
     const bounds = event.currentTarget.getBoundingClientRect();
     referenceViewer.scene.updateMatrixWorld(true);
     raycaster.setFromCamera(
@@ -509,9 +511,18 @@ export function setupReferences(api) {
       ];
       const point = uvPixel(hit.uv, r);
       if (!pixel(current().data, point.x, point.y)[3]) continue;
-      pickColor(point.x, point.y);
-      break;
+      return point;
     }
+    return null;
+  }
+  $("#ref-canvas").addEventListener("pointermove", (event) =>
+    magnifier.show(event, referencePoint(event)),
+  );
+  $("#ref-canvas").addEventListener("pointerleave", () => magnifier.hide());
+  $("#ref-canvas").addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    const point = referencePoint(event);
+    if (point) pickColor(point.x, point.y);
   });
   function sheetPoint(event) {
     const bounds = sheet.getBoundingClientRect();
@@ -532,6 +543,10 @@ export function setupReferences(api) {
       ),
     };
   }
+  sheet.addEventListener("pointermove", (event) =>
+    magnifier.show(event, picking && current() ? sheetPoint(event) : null),
+  );
+  sheet.addEventListener("pointerleave", () => magnifier.hide());
   function updateRectangle(point) {
     rectangle = {
       x: Math.min(start.x, point.x),
