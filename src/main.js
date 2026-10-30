@@ -16,6 +16,7 @@ import { createViews } from "./views.js";
 import { setupReferences } from "./references.js";
 import { readSkinPng } from "./reference-data.js";
 import { setupWorkspaceUI, updateColorReadout } from "./workspace-ui.js";
+import { createColorPicker } from "./color-picker.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -40,6 +41,7 @@ const sheet = $("#texture-canvas");
 const sheetContext = sheet.getContext("2d");
 let views;
 let referenceTools;
+let colorPicker;
 let stroke = null;
 let previous = null;
 let hovered = null;
@@ -213,6 +215,7 @@ function setColor(color) {
   $("#color-label").textContent = state.color.toUpperCase();
   if ($("#quick-color")) $("#quick-color").value = state.color;
   updateColorReadout(state.color);
+  colorPicker?.sync(state.color);
 }
 function useColor() {
   recent = [
@@ -557,3 +560,4 @@ referenceTools = setupReferences({
 });
 setupWorkspaceUI();
 updateColorReadout(state.color);
+colorPicker = createColorPicker(state.color, setColor);
