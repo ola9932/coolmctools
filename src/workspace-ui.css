@@ -17,6 +17,42 @@
   background: repeating-conic-gradient(#555 0% 25%, #333 0% 50%) 0/18px 18px;
   image-rendering: pixelated;
 }
+.quick-menu {
+  position: relative;
+}
+.quick-menu summary {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+  white-space: nowrap;
+}
+.quick-menu[open] > summary {
+  color: var(--accent);
+}
+.quick-menu > .setting-section {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 245px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #0005;
+  max-height: 65vh;
+  overflow: auto;
+}
+.quick-menu .parts {
+  gap: 14px 5px;
+}
+@media (max-width: 700px) {
+  .quick-menu > .setting-section {
+    position: fixed;
+    top: 140px;
+    right: 12px;
+    width: min(300px, calc(100vw - 24px));
+  }
+}
 .always-tools {
   position: sticky;
   top: 0;

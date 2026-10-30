@@ -34,6 +34,55 @@ export function setupWorkspaceUI() {
   document
     .querySelector("#always-palette")
     .append(document.querySelector("#palette"));
+  for (const [id, label, selector, key] of [
+    ["layer-menu", "레이어", "#base-visible", "L"],
+    ["parts-menu", "신체 부위", "#parts", "P"],
+  ]) {
+    const details = document.createElement("details");
+    details.id = id;
+    details.className = "quick-menu";
+    const summary = document.createElement("summary");
+    summary.textContent = `${label} (${key})`;
+    summary.setAttribute("aria-keyshortcuts", key.toLowerCase());
+    details.append(
+      summary,
+      document.querySelector(selector).closest(".setting-section"),
+    );
+    bar.append(details);
+    details.addEventListener("toggle", () => {
+      if (details.open)
+        document.querySelectorAll(".quick-menu").forEach((other) => {
+          if (other !== details) other.open = false;
+        });
+    });
+  }
+  window.addEventListener("keydown", (event) => {
+    if (
+      document.querySelector("dialog[open]") ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)
+    )
+      return;
+    const id = { l: "layer-menu", p: "parts-menu" }[event.key.toLowerCase()];
+    if (id) {
+      event.preventDefault();
+      const menu = document.getElementById(id);
+      menu.open = !menu.open;
+      menu.querySelector("summary").focus();
+    }
+    if (event.key === "Escape")
+      document.querySelectorAll(".quick-menu").forEach((menu) => {
+        menu.open = false;
+      });
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!event.target.closest(".quick-menu"))
+      document.querySelectorAll(".quick-menu").forEach((menu) => {
+        menu.open = false;
+      });
+  });
 }
 export function updateColorReadout(color) {
   const output = document.querySelector("#rgb-value");
