@@ -131,6 +131,7 @@ export function createViews(source, getState) {
       for (const part of Object.keys(PARTS)) {
         // Editing visibility must not hide parts in the full-character preview.
         skin[part].visible = viewer === preview || state.visible.has(part);
+        skin[part].innerLayer.visible = viewer === preview || state.baseVisible;
         skin[part].outerLayer.visible =
           viewer === preview || state.overlayVisible;
       }
@@ -149,6 +150,8 @@ export function createViews(source, getState) {
     editor.scene.updateMatrixWorld(true);
     raycaster.setFromCamera(pointer, editor.camera);
     const state = getState();
+    if (state.layer === "base" ? !state.baseVisible : !state.overlayVisible)
+      return null;
     const targets = [...state.visible].map((part) => {
       const mesh =
         editor.playerObject.skin[part][

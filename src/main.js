@@ -29,6 +29,7 @@ const state = {
   color: "#68cbb1",
   visible: new Set(Object.keys(PARTS)),
   overlayVisible: true,
+  baseVisible: true,
   view: "3d",
   grid: true,
 };
@@ -109,9 +110,22 @@ function drawSheet() {
   sheetContext.clearRect(0, 0, sheet.width, sheet.height);
   sheetContext.imageSmoothingEnabled = false;
   sheetContext.drawImage(source, 0, 0, sheet.width, sheet.height);
+  for (const layer of ["base", "overlay"]) {
+    if (layer === "base" ? state.baseVisible : state.overlayVisible) continue;
+    for (const part of Object.keys(PARTS))
+      for (const r of faces(part, layer, state.model))
+        sheetContext.clearRect(
+          r.x * scale,
+          r.y * scale,
+          r.w * scale,
+          r.h * scale,
+        );
+  }
   sheetContext.fillStyle = "rgba(10,15,22,.65)";
   sheetContext.fillRect(0, 0, sheet.width, sheet.height);
   for (const part of state.visible) {
+    if (state.layer === "base" ? !state.baseVisible : !state.overlayVisible)
+      continue;
     for (const region of faces(part, state.layer, state.model)) {
       const { x, y, w, h } = region;
       sheetContext.clearRect(x * scale, y * scale, w * scale, h * scale);
@@ -219,6 +233,8 @@ function setTool(tool) {
   $("#stage").classList.toggle("rotating", tool === "rotate");
 }
 function getHit(event, canvas) {
+  if (state.layer === "base" ? !state.baseVisible : !state.overlayVisible)
+    return null;
   if (canvas === sheet) {
     const rect = sheet.getBoundingClientRect();
     const x = Math.floor(((event.clientX - rect.left) / rect.width) * SIZE);
@@ -338,6 +354,10 @@ $$('[name="layer"]').forEach((radio) => {
   radio.onchange = () => {
     finishStroke();
     state.layer = radio.value;
+    if (state.layer === "base") {
+      state.baseVisible = true;
+      $("#base-visible").checked = true;
+    }
     $("#layer-tag").textContent = state.layer === "base" ? "기본층" : "외부층";
     if (state.layer === "overlay") {
       state.overlayVisible = true;
@@ -348,12 +368,19 @@ $$('[name="layer"]').forEach((radio) => {
   };
 });
 $("#overlay-visible").onchange = (event) => {
+  finishStroke();
   if (!event.target.checked && state.layer === "overlay") {
     $('input[name="layer"][value="base"]').checked = true;
     state.layer = "base";
     $("#layer-tag").textContent = "기본층";
   }
   state.overlayVisible = event.target.checked;
+  hover(null);
+  refresh();
+};
+$("#base-visible").onchange = (event) => {
+  finishStroke();
+  state.baseVisible = event.target.checked;
   hover(null);
   refresh();
 };
