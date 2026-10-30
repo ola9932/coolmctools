@@ -68,11 +68,9 @@ test("one-page references preserve editing, compose reversibly, extract colors a
         Array.from(canvas.getContext("2d").getImageData(102, 102, 1, 1).data),
       );
   expect((await sample()).slice(0, 3)).toEqual([255, 0, 255]);
-  await page.locator("#parts-menu summary").click();
   await page.locator("#parts label").first().locator("input").uncheck();
   expect((await sample()).slice(0, 3)).not.toEqual([255, 0, 255]);
   await page.locator("#parts label").first().locator("input").check();
-  await page.locator("#layer-menu summary").click();
   await page.locator("#base-visible").uncheck();
   expect((await sample()).slice(0, 3)).not.toEqual([255, 0, 255]);
   await page.locator("#base-visible").check();

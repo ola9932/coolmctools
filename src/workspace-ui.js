@@ -25,69 +25,44 @@ export function setupWorkspaceUI() {
     }
   };
   applyTheme();
-  const bar = document.createElement("section");
-  bar.className = "always-tools";
-  bar.setAttribute("aria-label", "항상 표시되는 색상 팔레트");
-  bar.innerHTML =
-    '<strong>그리기 색상</strong><div id="always-palette"></div><output id="rgb-value" aria-live="polite"></output>';
-  document.querySelector(".workspace-bar").after(bar);
-  document
-    .querySelector("#always-palette")
-    .append(document.querySelector("#palette"));
-  for (const [id, label, selector, key] of [
-    ["layer-menu", "레이어", "#base-visible", "L"],
-    ["parts-menu", "신체 부위", "#parts", "P"],
-  ]) {
-    const details = document.createElement("details");
-    details.id = id;
-    details.className = "quick-menu";
-    const summary = document.createElement("summary");
-    summary.textContent = `${label} (${key})`;
-    summary.setAttribute("aria-keyshortcuts", key.toLowerCase());
-    details.append(
-      summary,
+  const model = document.createElement("label");
+  model.className = "editor-model";
+  model.append("편집 모델 ", document.querySelector("#model"));
+  document.querySelector(".workspace-bar").prepend(model);
+  const recent = document.querySelector("#recent-colors");
+  const recentLabel = document.createElement("div");
+  recentLabel.className = "picker-recent";
+  const title = document.createElement("span");
+  title.textContent = "최근 사용 색상";
+  recentLabel.append(title, recent);
+  document.querySelector(".inline-color-picker").append(recentLabel);
+  const controls = document.createElement("div");
+  controls.className = "editing-controls";
+  controls.setAttribute("aria-label", "레이어와 신체 부위 설정");
+  for (const selector of ["#base-visible", "#parts"])
+    controls.append(
       document.querySelector(selector).closest(".setting-section"),
     );
-    bar.append(details);
-    details.addEventListener("toggle", () => {
-      if (details.open)
-        document.querySelectorAll(".quick-menu").forEach((other) => {
-          if (other !== details) other.open = false;
-        });
-    });
-  }
+  document.querySelector(".editor-panel>.panel-bar").after(controls);
+  window.dispatchEvent(new Event("resize"));
+  document.querySelector(".settings-panel").remove();
   window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !document.querySelector("dialog[open]")) {
-      document.querySelectorAll(".quick-menu").forEach((menu) => {
-        menu.open = false;
-      });
-      return;
-    }
     if (
-      document.querySelector("dialog[open]") ||
       event.ctrlKey ||
       event.metaKey ||
       event.altKey ||
+      document.querySelector("dialog[open]") ||
       ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)
     )
       return;
-    const id = { l: "layer-menu", p: "parts-menu" }[event.key.toLowerCase()];
-    if (id) {
+    const target = { l: "#base-visible", p: "#parts input" }[
+      event.key.toLowerCase()
+    ];
+    if (target) {
       event.preventDefault();
-      const menu = document.getElementById(id);
-      menu.open = !menu.open;
-      menu.querySelector("summary").focus();
+      const input = document.querySelector(target);
+      input.scrollIntoView({ block: "nearest" });
+      input.focus();
     }
   });
-  document.addEventListener("pointerdown", (event) => {
-    if (!event.target.closest(".quick-menu"))
-      document.querySelectorAll(".quick-menu").forEach((menu) => {
-        menu.open = false;
-      });
-  });
-}
-export function updateColorReadout(color) {
-  const output = document.querySelector("#rgb-value");
-  if (output)
-    output.textContent = `RGB ${[1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16)).join(", ")}`;
 }

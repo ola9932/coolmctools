@@ -16,8 +16,8 @@ test("3D painting, undo/redo, live animation, download and reload work together"
   await waitSaved(page);
   await expect(page.locator("#webgl-error")).toBeHidden();
   const initial = await saved(page);
-  await page.locator("#hex").fill("#FF0000");
-  await page.locator("#hex").press("Tab");
+  await page.locator("#picker-hex").fill("#FF0000");
+  await page.locator("#picker-hex").press("Tab");
   await page.locator("#reset-view").click();
   const canvas = page.locator("#editor-canvas");
   const box = await canvas.boundingBox();
@@ -71,10 +71,9 @@ test("overlay edits, fill, eraser, picker, visibility and invalid files", async 
   await waitSaved(page);
   const initial = await saved(page);
   await page.locator('[data-view="2d"]').click();
-  await page.locator("#layer-menu summary").click();
   await page.locator('input[name="layer"][value="overlay"]').check();
-  await page.locator("#hex").fill("#FF0000");
-  await page.locator("#hex").press("Tab");
+  await page.locator("#picker-hex").fill("#FF0000");
+  await page.locator("#picker-hex").press("Tab");
   await page.locator('[data-tool="fill"]').click();
   const clickPixel = async (x, y) => {
     await page.locator(".editor-panel").scrollIntoViewIfNeeded();
@@ -102,11 +101,9 @@ test("overlay edits, fill, eraser, picker, visibility and invalid files", async 
   expect((await saved(page)).pixels[(8 * 64 + 40) * 4 + 3]).toBe(0);
   await page.locator('[data-tool="picker"]').click();
   await clickPixel(41, 8);
-  await expect(page.locator("#hex")).toHaveValue("#FF0000");
-  await page.locator("#layer-menu summary").click();
+  await expect(page.locator("#picker-hex")).toHaveValue("#FF0000");
   await page.locator("#overlay-visible").uncheck();
   await expect(page.locator('input[name="layer"][value="base"]')).toBeChecked();
-  await page.locator("#parts-menu summary").click();
   await page
     .locator("#parts label")
     .filter({ hasText: "머리" })

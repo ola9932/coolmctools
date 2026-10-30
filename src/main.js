@@ -15,7 +15,7 @@ import {
 import { createViews } from "./views.js";
 import { setupReferences } from "./references.js";
 import { readSkinPng } from "./reference-data.js";
-import { setupWorkspaceUI, updateColorReadout } from "./workspace-ui.js";
+import { setupWorkspaceUI } from "./workspace-ui.js";
 import { createColorPicker } from "./color-picker.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -100,7 +100,9 @@ function restore() {
     state.data = new Uint8ClampedArray(saved.pixels);
     state.model = saved.model;
     recent = Array.isArray(saved.recent)
-      ? saved.recent.filter((color) => /^#[\da-f]{6}$/i.test(color)).slice(0, 8)
+      ? saved.recent
+          .filter((color) => /^#[\da-f]{6}$/i.test(color))
+          .slice(0, 10)
       : [];
     notify("이전에 작업하던 스킨을 복원했습니다.");
   } catch {
@@ -210,18 +212,18 @@ function renderRecent() {
 }
 function setColor(color) {
   state.color = color.toLowerCase();
-  $("#color").value = state.color;
-  $("#hex").value = state.color.toUpperCase();
-  $("#color-label").textContent = state.color.toUpperCase();
+  if ($("#color")) $("#color").value = state.color;
+  if ($("#hex")) $("#hex").value = state.color.toUpperCase();
+  if ($("#color-label"))
+    $("#color-label").textContent = state.color.toUpperCase();
   if ($("#quick-color")) $("#quick-color").value = state.color;
-  updateColorReadout(state.color);
   colorPicker?.sync(state.color);
 }
 function useColor() {
   recent = [
     state.color,
     ...recent.filter((value) => value !== state.color),
-  ].slice(0, 8);
+  ].slice(0, 10);
   renderRecent();
 }
 function setTool(tool) {
@@ -558,6 +560,5 @@ referenceTools = setupReferences({
   commit,
   finishStroke,
 });
-setupWorkspaceUI();
-updateColorReadout(state.color);
 colorPicker = createColorPicker(state.color, setColor);
+setupWorkspaceUI();

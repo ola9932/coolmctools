@@ -27,8 +27,6 @@ export function setupReferences(api) {
     `<div class="workspace-bar">
     <label><input id="reference-toggle" type="checkbox" /> 레퍼런스 보기</label>
     <button id="reference-add">＋ 레퍼런스 추가</button><input id="reference-files" type="file" accept="image/png,.png" multiple hidden />
-    <button id="settings-toggle" aria-expanded="true">편집 설정 접기</button>
-    <label>그리기 색상 <input id="quick-color" type="color" value="#68cbb1" aria-label="빠른 색상 선택" /></label>
     <label class="reference-layout-label">배치 <select id="reference-layout"><option value="split">나란히</option><option value="float">작은 창</option></select></label>
     <div class="tabs"><button data-side="reference" aria-pressed="false">레퍼런스</button><button data-side="animation" aria-pressed="true" class="active">움직임 미리보기</button></div>
     <div class="mobile-switch"><button id="show-editor" class="active" aria-pressed="true">편집</button><button id="show-side" aria-pressed="false">참고 / 미리보기</button></div>
@@ -107,15 +105,23 @@ export function setupReferences(api) {
       innerWidth > 700;
     workspace.classList.toggle("comparing", comparing);
     if (comparing) {
+      const controlsHeight =
+        $(".editing-controls")?.getBoundingClientRect().height || 0;
+      const naturalHeight = [...top.children].reduce(
+        (sum, child) => sum + child.getBoundingClientRect().height,
+        0,
+      );
+      const totalHeight = Math.max(naturalHeight, 58 + controlsHeight);
+      top.style.minHeight = `${totalHeight}px`;
       workspace.style.setProperty(
         "--compare-stage-height",
         `${$("#stage").clientHeight}px`,
       );
       workspace.style.setProperty(
         "--compare-header-height",
-        `${top.getBoundingClientRect().height}px`,
+        `${totalHeight - controlsHeight}px`,
       );
-    }
+    } else top.style.minHeight = "";
   }
   const comparisonObserver = new ResizeObserver(alignComparison);
   comparisonObserver.observe($("#stage"));
@@ -135,7 +141,6 @@ export function setupReferences(api) {
           pinned,
           side,
           view2d,
-          settingsHidden: $(".settings-panel").hidden,
           layout: $("#reference-layout").value,
           syncingEnabled,
         }),
@@ -175,20 +180,12 @@ export function setupReferences(api) {
         ? saved.side
         : "animation";
       view2d = saved.view2d === true;
-      $(".settings-panel").hidden = saved.settingsHidden === true;
       $("#reference-layout").value =
         saved.layout === "float" ? "float" : "split";
       syncingEnabled = saved.syncingEnabled !== false;
     }
   } catch {
     api.notify("레퍼런스 저장 내용을 읽지 못했습니다. 편집 스킨은 유지됩니다.");
-  }
-  function setSettingsButton() {
-    const hidden = $(".settings-panel").hidden;
-    $("#settings-toggle").textContent = hidden
-      ? "편집 설정 열기"
-      : "편집 설정 접기";
-    $("#settings-toggle").setAttribute("aria-expanded", !hidden);
   }
   function updateLayout(save = true) {
     workspace.classList.toggle("has-side", side !== null);
@@ -213,18 +210,15 @@ export function setupReferences(api) {
       referenceViewer.renderPaused = side !== "reference" || view2d;
     if (api.views) api.views.preview.renderPaused = side !== "animation";
     alignComparison();
-    setSettingsButton();
     if (save) persist();
   }
   $("#reference-toggle").onchange = () => {
     side = $("#reference-toggle").checked ? "reference" : null;
-    if (side) $(".settings-panel").hidden = true;
     updateLayout();
   };
   $$("[data-side]").forEach((button) => {
     button.onclick = () => {
       side = button.dataset.side;
-      if (side === "reference") $(".settings-panel").hidden = true;
       updateLayout();
     };
   });
@@ -235,10 +229,6 @@ export function setupReferences(api) {
   $("#show-side").onclick = () => {
     mobileSide = true;
     side ||= "reference";
-    updateLayout();
-  };
-  $("#settings-toggle").onclick = () => {
-    $(".settings-panel").hidden = !$(".settings-panel").hidden;
     updateLayout();
   };
   $("#reference-layout").onchange = () => updateLayout();
@@ -462,7 +452,6 @@ export function setupReferences(api) {
           } else references.push(item);
           selectedId = item.id;
           side = "reference";
-          $(".settings-panel").hidden = true;
           resetSelection();
           renderList();
           updateLayout();
@@ -801,8 +790,6 @@ export function setupReferences(api) {
     api.notify("합성을 적용했습니다. 실행 취소로 되돌릴 수 있습니다.");
   };
   if (!api.views) view2d = true;
-  $("#quick-color").value = api.state.color;
-  $("#quick-color").oninput = (event) => api.setColor(event.target.value);
   renderPinned();
   renderList();
   updateLayout(false);
