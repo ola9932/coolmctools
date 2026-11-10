@@ -26,6 +26,8 @@ export function setupReferences(api) {
     "beforebegin",
     `<div class="workspace-bar">
     <label><input id="reference-toggle" type="checkbox" /> 레퍼런스 보기</label>
+    <label><input id="reference-sync" type="checkbox" checked /> 시점 동기화</label>
+    <label><input id="reference-visibility-sync" type="checkbox" checked /> 표시 상태 동기화</label>
     <button id="reference-add">＋ 레퍼런스 추가</button><input id="reference-files" type="file" accept="image/png,.png" multiple hidden />
     <label class="reference-layout-label">배치 <select id="reference-layout"><option value="split">나란히</option><option value="float">작은 창</option></select></label>
     <div class="tabs"><button data-side="reference" aria-pressed="false">레퍼런스</button><button data-side="animation" aria-pressed="true" class="active">움직임 미리보기</button></div>
@@ -35,10 +37,10 @@ export function setupReferences(api) {
   workspace.insertAdjacentHTML(
     "beforeend",
     `<section class="reference-panel panel" hidden aria-label="레퍼런스 스킨">
-    <div class="reference-head"><select id="reference-select" aria-label="레퍼런스 선택"></select><button id="reference-replace">교체</button><button id="reference-remove">제거</button><input id="reference-replace-file" type="file" accept="image/png,.png" hidden /></div>
-    <div class="reference-controls"><label>모델 <select id="reference-model"><option value="default">Classic · 4px</option><option value="slim">Slim · 3px</option></select></label><label><input id="reference-sync" type="checkbox" checked /> 시점 동기화</label><button id="reference-view">2D 펼침도</button><button id="reference-pick" aria-pressed="false">색상 선택</button></div>
+    <div class="reference-head"><select id="reference-select" aria-label="레퍼런스 선택"></select><label class="reference-model-label">모델 <select id="reference-model"><option value="default">Classic · 4px</option><option value="slim">Slim · 3px</option></select></label><button id="reference-replace">교체</button><button id="reference-remove">제거</button><input id="reference-replace-file" type="file" accept="image/png,.png" hidden /></div>
+    <div class="reference-controls"><section class="reference-layer-settings"><h2>레이어 표시</h2><label><input id="ref-base-visible" type="checkbox" checked /> 기본층 표시</label><label><input id="ref-overlay-visible" type="checkbox" checked /> 외부층 표시</label></section><section class="reference-part-settings"><h2>신체 부위</h2><div id="reference-parts"></div></section></div>
     <div class="reference-stage"><canvas id="ref-canvas" aria-label="읽기 전용 레퍼런스 3D"></canvas><div class="reference-sheet-wrap" hidden><canvas id="ref-sheet" width="768" height="768" aria-label="레퍼런스 2D 펼침도"></canvas></div><div class="reference-empty"><strong>함께 볼 스킨을 추가하세요</strong><p>64×64 PNG · 최대 8개<br />현재 작업은 그대로 유지됩니다.</p><button id="reference-empty-add">PNG 불러오기</button></div></div>
-    <div class="reference-readout" id="reference-readout">드래그로 회전 · 색상 선택을 켜고 픽셀 클릭</div>
+    <div class="reference-readout" id="reference-readout">드래그로 회전 · 스포이트 도구로 색상 선택</div>
     <details id="compose-controls"><summary>부위 / 영역 합성</summary><p>레퍼런스의 같은 부위·좌표를 편집 스킨에 복사합니다. 옷·머리카락만 복사하려면 외부층 또는 사각형 영역을 선택하세요.</p><div class="composition-parts" id="compose-parts"></div>
     <div class="reference-fields"><label>복사할 레이어<select id="compose-layer"><option value="both">기본층 + 외부층</option><option value="base">기본층만</option><option value="overlay">외부층만</option></select></label><label>복사 범위<select id="compose-scope"><option value="all">부위 전체</option><option value="4">앞면</option><option value="5">뒷면</option><option value="0">오른쪽 면</option><option value="1">왼쪽 면</option><option value="2">윗면</option><option value="3">아랫면</option><option value="rectangle">2D 사각형 영역</option></select></label><label>투명 픽셀<select id="compose-transparency"><option value="skip">투명 픽셀 제외</option><option value="include">투명 픽셀까지 교체</option></select></label></div>
     <p id="selection-info" class="selection-info">선택 부위의 같은 좌표에 복사합니다.</p><div class="reference-actions"><button id="select-rectangle">2D에서 영역 선택</button><button id="clear-rectangle">영역 해제</button><button id="compose-preview" class="primary">합성 미리보기</button></div></details><p id="ref-storage-status" role="status"></p>
@@ -50,6 +52,13 @@ export function setupReferences(api) {
     `<dialog class="compose-dialog" id="compose-dialog"><h2>합성 결과 미리보기</h2><p id="compose-summary"></p><div class="compose-preview"><canvas id="compose-canvas" aria-label="합성 결과 3D 미리보기"></canvas><canvas id="compose-fallback" width="64" height="64" hidden aria-label="합성 결과 펼침도"></canvas></div><p>적용 전에는 작업 스킨이 바뀌지 않습니다. 적용 후 실행 취소로 되돌릴 수 있습니다.</p><div class="reference-actions"><button id="compose-cancel">취소</button><button id="compose-apply" class="primary">적용</button></div></dialog>`,
   );
   for (const [key, part] of Object.entries(PARTS)) {
+    const visibilityLabel = document.createElement("label");
+    const visibilityInput = document.createElement("input");
+    visibilityInput.type = "checkbox";
+    visibilityInput.value = key;
+    visibilityInput.checked = true;
+    visibilityLabel.append(visibilityInput, part.label);
+    $("#reference-parts").append(visibilityLabel);
     for (const id of ["palette-part"]) {
       const option = new Option(part.label, key);
       $(`#${id}`).add(option);
@@ -82,6 +91,12 @@ export function setupReferences(api) {
     importing = false,
     syncBusy = false,
     syncingEnabled = true;
+  let visibilitySync = true;
+  const referenceVisibility = {
+    visible: new Set(Object.keys(PARTS)),
+    baseVisible: true,
+    overlayVisible: true,
+  };
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 64;
   const context = canvas.getContext("2d");
@@ -89,10 +104,12 @@ export function setupReferences(api) {
   const sheet = $("#ref-sheet"),
     sheetContext = sheet.getContext("2d");
   const current = () => references.find((item) => item.id === selectedId);
-  const displayedParts = () => [...api.state.visible];
+  const displayedParts = () => [...referenceVisibility.visible];
   const displayedLayers = () =>
     ["base", "overlay"].filter((layer) =>
-      layer === "base" ? api.state.baseVisible : api.state.overlayVisible,
+      layer === "base"
+        ? referenceVisibility.baseVisible
+        : referenceVisibility.overlayVisible,
     );
   const top = document.createElement("div");
   top.className = "reference-top";
@@ -141,6 +158,11 @@ export function setupReferences(api) {
           view2d,
           layout: $("#reference-layout").value,
           syncingEnabled,
+          visibilitySync,
+          visibility: {
+            ...referenceVisibility,
+            visible: [...referenceVisibility.visible],
+          },
         }),
       );
       $("#ref-storage-status").textContent =
@@ -177,10 +199,22 @@ export function setupReferences(api) {
       side = ["reference", "animation", null].includes(saved.side)
         ? saved.side
         : "animation";
-      view2d = saved.view2d === true;
       $("#reference-layout").value =
         saved.layout === "float" ? "float" : "split";
       syncingEnabled = saved.syncingEnabled !== false;
+      visibilitySync = saved.visibilitySync !== false;
+      if (saved.visibility) {
+        referenceVisibility.baseVisible =
+          saved.visibility.baseVisible !== false;
+        referenceVisibility.overlayVisible =
+          saved.visibility.overlayVisible !== false;
+        if (Array.isArray(saved.visibility.visible))
+          referenceVisibility.visible = new Set(
+            saved.visibility.visible.filter((part) =>
+              Object.hasOwn(PARTS, part),
+            ),
+          );
+      }
     }
   } catch {
     api.notify("레퍼런스 저장 내용을 읽지 못했습니다. 편집 스킨은 유지됩니다.");
@@ -327,19 +361,27 @@ export function setupReferences(api) {
     }
   }
   function syncVisibility() {
+    if (visibilitySync) {
+      referenceVisibility.visible = new Set(api.state.visible);
+      referenceVisibility.baseVisible = api.state.baseVisible;
+      referenceVisibility.overlayVisible = api.state.overlayVisible;
+    }
+    $("#ref-base-visible").checked = referenceVisibility.baseVisible;
+    $("#ref-overlay-visible").checked = referenceVisibility.overlayVisible;
+    for (const input of $$("#reference-parts input"))
+      input.checked = referenceVisibility.visible.has(input.value);
     if (referenceViewer)
       for (const part of Object.keys(PARTS)) {
         const body = referenceViewer.playerObject.skin[part];
-        body.visible = api.state.visible.has(part);
-        body.innerLayer.visible = api.state.baseVisible;
-        body.outerLayer.visible = api.state.overlayVisible;
+        body.visible = referenceVisibility.visible.has(part);
+        body.innerLayer.visible = referenceVisibility.baseVisible;
+        body.outerLayer.visible = referenceVisibility.overlayVisible;
       }
     drawSheet();
   }
   function syncReference() {
     magnifier.hide();
     const item = current();
-    $(".reference-panel").classList.toggle("is-picking", picking && !!item);
     if (item) {
       context.putImageData(new ImageData(item.data, 64, 64), 0, 0);
       ensureViewer();
@@ -351,25 +393,19 @@ export function setupReferences(api) {
       "reference-remove",
       "reference-model",
       "compose-preview",
-      "reference-pick",
       "select-rectangle",
     ])
       $(`#${id}`).disabled = !item;
     if (referenceViewer && item) {
       referenceTexture.needsUpdate = true;
       referenceViewer.playerObject.skin.modelType = item.model;
-      for (const part of Object.keys(PARTS)) {
-        const body = referenceViewer.playerObject.skin[part];
-        body.visible = displayedParts().includes(part);
-        body.innerLayer.visible = api.state.baseVisible;
-        body.outerLayer.visible = api.state.overlayVisible;
-      }
       referenceViewer.controls.enabled = !picking;
       referenceViewer.renderPaused = side !== "reference" || view2d;
     }
     $("#ref-canvas").hidden = view2d;
     $(".reference-sheet-wrap").hidden = !view2d;
-    $("#reference-view").textContent = view2d ? "3D 모델" : "2D 펼침도";
+    syncEditorMode();
+    syncVisibility();
     drawSheet();
     renderPalette();
   }
@@ -402,24 +438,66 @@ export function setupReferences(api) {
     syncReference();
     persist();
   };
-  $("#reference-view").onclick = () => {
-    view2d = !view2d || !api.views;
-    syncReference();
-    persist();
-  };
   $("#reference-sync").checked = syncingEnabled;
   $("#reference-sync").onchange = () => {
     syncingEnabled = $("#reference-sync").checked;
     synchronize(api.views?.editor, referenceViewer);
     persist();
   };
-  $("#reference-pick").onclick = () => {
-    picking = !picking;
-    selecting = false;
-    $("#reference-pick").setAttribute("aria-pressed", picking);
-    $("#reference-pick").textContent = picking ? "색상 선택 중" : "색상 선택";
-    syncReference();
+  $("#reference-visibility-sync").checked = visibilitySync;
+  $("#reference-visibility-sync").onchange = () => {
+    visibilitySync = $("#reference-visibility-sync").checked;
+    syncVisibility();
+    persist();
   };
+  for (const [refId, editorId, field] of [
+    ["ref-base-visible", "base-visible", "baseVisible"],
+    ["ref-overlay-visible", "overlay-visible", "overlayVisible"],
+  ]) {
+    $(`#${refId}`).onchange = () => {
+      referenceVisibility[field] = $(`#${refId}`).checked;
+      if (
+        visibilitySync &&
+        $(`#${editorId}`).checked !== referenceVisibility[field]
+      )
+        $(`#${editorId}`).click();
+      syncVisibility();
+      persist();
+    };
+  }
+  for (const input of $$("#reference-parts input"))
+    input.onchange = () => {
+      if (input.checked) referenceVisibility.visible.add(input.value);
+      else referenceVisibility.visible.delete(input.value);
+      const editorInput = $(`#parts input[value="${input.value}"]`);
+      if (visibilitySync && editorInput.checked !== input.checked)
+        editorInput.click();
+      syncVisibility();
+      persist();
+    };
+  function syncEditorMode() {
+    const next2d =
+      api.state.view === "2d" ||
+      !api.views ||
+      (!!current() && !referenceViewer);
+    const nextPicking = api.state.tool === "picker";
+    if (picking !== nextPicking || view2d !== next2d) {
+      magnifier.hide();
+      if (nextPicking || !next2d) selecting = false;
+    }
+    picking = nextPicking;
+    view2d = next2d;
+    $(".reference-panel").classList.toggle(
+      "is-picking",
+      picking && !!current(),
+    );
+    $("#ref-canvas").hidden = view2d;
+    $(".reference-sheet-wrap").hidden = !view2d;
+    if (referenceViewer) {
+      referenceViewer.controls.enabled = !picking;
+      referenceViewer.renderPaused = side !== "reference" || view2d;
+    }
+  }
   $("#reference-add").onclick = $("#reference-empty-add").onclick = () =>
     $("#reference-files").click();
   $("#reference-replace").onclick = () => $("#reference-replace-file").click();
@@ -602,11 +680,9 @@ export function setupReferences(api) {
       pointerId = null;
     });
   $("#select-rectangle").onclick = () => {
-    view2d = true;
+    $('[data-tool="pen"]').click();
+    $('[data-view="2d"]').click();
     selecting = true;
-    picking = false;
-    $("#reference-pick").textContent = "색상 선택";
-    $("#reference-pick").setAttribute("aria-pressed", false);
     $("#compose-scope").value = "rectangle";
     $("#select-rectangle").textContent = "펼침도에서 드래그하세요";
     syncReference();
@@ -795,6 +871,7 @@ export function setupReferences(api) {
   let paletteTimer;
   return {
     refresh: () => {
+      syncEditorMode();
       syncVisibility();
       clearTimeout(paletteTimer);
       paletteTimer = setTimeout(renderPalette, 120);

@@ -64,7 +64,10 @@ test("one-page references preserve editing, compose reversibly, extract colors a
   const composeBounds = await page.locator("#compose-controls").boundingBox();
   expect(Math.abs(paletteBounds.y - composeBounds.y)).toBeLessThan(1);
   expect(paletteBounds.x).toBeLessThan(composeBounds.x);
-  await page.locator("#reference-pick").click();
+  await expect(page.locator("#reference-view, #reference-pick")).toHaveCount(0);
+  await expect(page.locator(".reference-head #reference-model")).toBeVisible();
+  await expect(page.locator(".workspace-bar #reference-sync")).toBeVisible();
+  await page.locator('[data-tool="picker"]').click();
   await expect(page.locator(".reference-panel")).toHaveClass(/is-picking/);
   const refBounds = await page.locator("#ref-canvas").boundingBox();
   await page.mouse.move(
@@ -73,10 +76,10 @@ test("one-page references preserve editing, compose reversibly, extract colors a
   );
   await expect(page.locator(".pixel-magnifier")).toBeVisible();
   await expect(page.locator(".pixel-magnifier span")).toContainText("3D");
-  await page.locator("#reference-pick").click();
+  await page.locator('[data-tool="pen"]').click();
   await expect(page.locator(".reference-panel")).not.toHaveClass(/is-picking/);
   await expect(page.locator(".pixel-magnifier")).toBeHidden();
-  await page.locator("#reference-view").click();
+  await page.locator('[data-view="2d"]').click();
   const sample = () =>
     page
       .locator("#ref-sheet")
@@ -90,7 +93,17 @@ test("one-page references preserve editing, compose reversibly, extract colors a
   await page.locator("#base-visible").uncheck();
   expect((await sample()).slice(0, 3)).not.toEqual([255, 0, 255]);
   await page.locator("#base-visible").check();
-  await page.locator("#reference-view").click();
+  await page.locator("#reference-visibility-sync").uncheck();
+  await page.locator("#ref-base-visible").uncheck();
+  await expect(page.locator("#base-visible")).toBeChecked();
+  expect((await sample()).slice(0, 3)).not.toEqual([255, 0, 255]);
+  await page.locator("#reference-visibility-sync").check();
+  await expect(page.locator("#ref-base-visible")).toBeChecked();
+  await page.locator('#reference-parts input[value="head"]').uncheck();
+  await expect(page.locator('#parts input[value="head"]')).not.toBeChecked();
+  await page.locator('#reference-parts input[value="head"]').check();
+  await page.locator('[data-view="3d"]').click();
+  await expect(page.locator("#ref-canvas")).toBeVisible();
   const width = (await page.locator("#stage").boundingBox()).width;
   await page.locator("#reference-toggle").uncheck();
   expect((await page.locator("#stage").boundingBox()).width).toBeGreaterThan(
@@ -183,7 +196,7 @@ test("rectangle copy, model mismatch, reference picker and removal are isolated"
     if (next.pixels.slice(i, i + 4).some((v, j) => v !== initial.pixels[i + j]))
       changed++;
   expect(changed).toBe(4);
-  await page.locator("#reference-pick").click();
+  await page.locator('[data-tool="picker"]').click();
   await page.locator("#ref-sheet").scrollIntoViewIfNeeded();
   box = await page.locator("#ref-sheet").boundingBox();
   await page.mouse.move(

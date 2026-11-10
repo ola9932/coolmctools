@@ -239,6 +239,7 @@ function setTool(tool) {
   });
   views?.setTool(tool);
   $("#stage").classList.toggle("rotating", tool === "rotate");
+  referenceTools?.refresh();
 }
 function getHit(event, canvas) {
   if (state.layer === "base" ? !state.baseVisible : !state.overlayVisible)
@@ -347,6 +348,7 @@ $$("[data-view]").forEach((button) => {
     });
     $("#editor-canvas").hidden = state.view !== "3d";
     $("#texture-wrap").hidden = state.view !== "2d";
+    referenceTools?.refresh();
     hover(null);
   };
 });
@@ -405,6 +407,7 @@ for (const [key, part] of Object.entries(PARTS)) {
   const label = document.createElement("label");
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
+  checkbox.value = key;
   checkbox.checked = true;
   checkbox.onchange = () => {
     finishStroke();
