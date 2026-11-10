@@ -1,0 +1,79 @@
+.workspace.integrated {
+  position: relative;
+}
+.floating-tools {
+  position: absolute;
+  width: 202px;
+  z-index: 8;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--muted);
+  box-shadow: 0 6px 24px #0005;
+  overflow: hidden;
+}
+.tools-drag-handle {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  font-size: 11px;
+}
+.dragging .tools-drag-handle {
+  cursor: grabbing;
+}
+.floating-tools .toolbar {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  padding: 6px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.floating-tools .tool-divider {
+  display: none;
+}
+.floating-tools .inline-color-picker {
+  position: static;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+}
+.tools-position-reset {
+  display: block;
+  margin: 0 10px 8px auto;
+  font-size: 10px;
+  padding: 4px 8px;
+}
+.editor-panel > .palette-panel {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+}
+#ref-storage-status:empty {
+  display: none;
+}
+@media (min-width: 701px) {
+  #stage #texture-wrap {
+    left: 220px;
+    right: 0;
+  }
+}
+@media (max-width: 700px) {
+  .floating-tools {
+    width: 180px;
+  }
+  .workspace.mobile-reference .floating-tools {
+    display: none;
+  }
+}

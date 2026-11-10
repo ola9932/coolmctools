@@ -60,6 +60,10 @@ test("one-page references preserve editing, compose reversibly, extract colors a
       );
     })
     .toBeLessThan(1);
+  const paletteBounds = await page.locator("#palette-extraction").boundingBox();
+  const composeBounds = await page.locator("#compose-controls").boundingBox();
+  expect(Math.abs(paletteBounds.y - composeBounds.y)).toBeLessThan(1);
+  expect(paletteBounds.x).toBeLessThan(composeBounds.x);
   await page.locator("#reference-pick").click();
   await expect(page.locator(".reference-panel")).toHaveClass(/is-picking/);
   const refBounds = await page.locator("#ref-canvas").boundingBox();

@@ -1,5 +1,6 @@
 import "./workspace-ui.css";
 import "./theme.css";
+import { setupFloatingTools } from "./floating-tools.js";
 export function setupWorkspaceUI() {
   const themeButton = document.createElement("button");
   themeButton.id = "theme-toggle";
@@ -46,6 +47,10 @@ export function setupWorkspaceUI() {
   document.querySelector(".editor-panel>.panel-bar").after(controls);
   window.dispatchEvent(new Event("resize"));
   document.querySelector(".settings-panel").remove();
+  document
+    .querySelector(".editor-panel")
+    .append(document.querySelector("#palette-extraction"));
+  setupFloatingTools();
   window.addEventListener("keydown", (event) => {
     if (
       event.ctrlKey ||
