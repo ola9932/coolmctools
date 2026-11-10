@@ -179,3 +179,30 @@ test("starter paints all base pixels while keeping overlay transparent", () => {
       }
   }
 });
+test("sitting feet extend forward and outward by 15 degrees from each hip", async () => {
+  const { PlayerObject } = await import("skinview3d");
+  const { Vector3 } = await import("three");
+  const { applyPose } = await import("../src/poses.js");
+  const player = new PlayerObject();
+  applyPose(player, "sit");
+  player.updateMatrixWorld(true);
+  const feet = [];
+  for (const [part, sign] of [
+    ["rightLeg", -1],
+    ["leftLeg", 1],
+  ]) {
+    const leg = player.skin[part];
+    const hip = leg.localToWorld(new Vector3());
+    const foot = leg.localToWorld(new Vector3(0, -12, 0));
+    const direction = foot.clone().sub(hip);
+    assert.ok(direction.x * sign > 0, `${part} must extend outward`);
+    assert.ok(direction.z > 0, `${part} must extend forward`);
+    assert.ok(Math.abs(direction.y) < 1e-10);
+    assert.ok(
+      Math.abs(Math.atan2(Math.abs(direction.x), direction.z) - Math.PI / 12) <
+        1e-10,
+    );
+    feet.push(foot);
+  }
+  assert.ok(feet[1].x - feet[0].x > 9, "feet must separate, not overlap");
+});
