@@ -4,6 +4,7 @@ import { SkinViewer } from "skinview3d";
 import { CanvasTexture, NearestFilter, Raycaster, Vector2 } from "three";
 import { PARTS, faces, locate, pixel, uvPixel } from "./skin.js";
 import { composeSkin, extractPalette, readSkinPng } from "./reference-data.js";
+import { drawAtlas, createAtlasViewport } from "./atlas.js";
 
 const KEY = "coolmc.references.v1";
 const $ = (s) => document.querySelector(s);
@@ -40,7 +41,7 @@ export function setupReferences(api) {
     <div class="reference-head"><select id="reference-select" aria-label="레퍼런스 선택"></select><label class="reference-model-label">모델 <select id="reference-model"><option value="default">Classic · 4px</option><option value="slim">Slim · 3px</option></select></label><button id="reference-replace">교체</button><button id="reference-remove">제거</button><input id="reference-replace-file" type="file" accept="image/png,.png" hidden /></div>
     <div class="reference-controls"><section class="reference-layer-settings"><h2>레이어 표시</h2><label><input id="ref-base-visible" type="checkbox" checked /> 기본층 표시</label><label><input id="ref-overlay-visible" type="checkbox" checked /> 외부층 표시</label></section><section class="reference-part-settings"><h2>신체 부위</h2><div id="reference-parts"></div></section></div>
     <div class="reference-stage"><canvas id="ref-canvas" aria-label="읽기 전용 레퍼런스 3D"></canvas><div class="reference-sheet-wrap" hidden><canvas id="ref-sheet" width="768" height="768" aria-label="레퍼런스 2D 펼침도"></canvas></div><div class="reference-empty"><strong>함께 볼 스킨을 추가하세요</strong><p>64×64 PNG · 최대 8개<br />현재 작업은 그대로 유지됩니다.</p><button id="reference-empty-add">PNG 불러오기</button></div></div>
-    <div class="reference-readout" id="reference-readout">드래그로 회전 · 스포이트 도구로 색상 선택</div>
+    <div class="reference-readout" id="reference-readout">드래그로 회전/이동 · 휠 확대 · 스포이트로 색상 선택</div>
     <details id="compose-controls"><summary>부위 / 영역 합성</summary><p>레퍼런스의 같은 부위·좌표를 편집 스킨에 복사합니다. 옷·머리카락만 복사하려면 외부층 또는 사각형 영역을 선택하세요.</p><div class="composition-parts" id="compose-parts"></div>
     <div class="reference-fields"><label>복사할 레이어<select id="compose-layer"><option value="both">기본층 + 외부층</option><option value="base">기본층만</option><option value="overlay">외부층만</option></select></label><label>복사 범위<select id="compose-scope"><option value="all">부위 전체</option><option value="4">앞면</option><option value="5">뒷면</option><option value="0">오른쪽 면</option><option value="1">왼쪽 면</option><option value="2">윗면</option><option value="3">아랫면</option><option value="rectangle">2D 사각형 영역</option></select></label><label>투명 픽셀<select id="compose-transparency"><option value="skip">투명 픽셀 제외</option><option value="include">투명 픽셀까지 교체</option></select></label></div>
     <p id="selection-info" class="selection-info">선택 부위의 같은 좌표에 복사합니다.</p><div class="reference-actions"><button id="select-rectangle">2D에서 영역 선택</button><button id="clear-rectangle">영역 해제</button><button id="compose-preview" class="primary">합성 미리보기</button></div></details><p id="ref-storage-status" role="status"></p>
@@ -103,6 +104,17 @@ export function setupReferences(api) {
   const magnifier = createMagnifier(canvas);
   const sheet = $("#ref-sheet"),
     sheetContext = sheet.getContext("2d");
+  const sheetViewport = createAtlasViewport(
+    $(".reference-sheet-wrap"),
+    sheet,
+    () => !picking && !selecting,
+  );
+  api.sheetViewport.onChange((value) => {
+    if (syncingEnabled) sheetViewport.set(value, false);
+  });
+  sheetViewport.onChange((value) => {
+    if (syncingEnabled) api.sheetViewport.set(value, false);
+  });
   const current = () => references.find((item) => item.id === selectedId);
   const displayedParts = () => [...referenceVisibility.visible];
   const displayedLayers = () =>
@@ -320,28 +332,12 @@ export function setupReferences(api) {
   function drawSheet() {
     sheetContext.clearRect(0, 0, 768, 768);
     if (!current()) return;
-    sheetContext.imageSmoothingEnabled = false;
-    sheetContext.fillStyle = "#101722aa";
-    sheetContext.fillRect(0, 0, 768, 768);
-    const layers = displayedLayers();
-    for (const part of displayedParts())
-      for (const layer of layers)
-        for (const r of faces(part, layer, current().model)) {
-          sheetContext.clearRect(r.x * 12, r.y * 12, r.w * 12, r.h * 12);
-          sheetContext.drawImage(
-            canvas,
-            r.x,
-            r.y,
-            r.w,
-            r.h,
-            r.x * 12,
-            r.y * 12,
-            r.w * 12,
-            r.h * 12,
-          );
-          sheetContext.strokeStyle = "#9fe6c599";
-          sheetContext.strokeRect(r.x * 12, r.y * 12, r.w * 12, r.h * 12);
-        }
+    drawAtlas(sheetContext, canvas, {
+      parts: displayedParts(),
+      layers: displayedLayers(),
+      model: current().model,
+      grid: api.state.grid,
+    });
     if (rectangle) {
       sheetContext.fillStyle = "#a6e8c533";
       sheetContext.fillRect(
@@ -442,6 +438,7 @@ export function setupReferences(api) {
   $("#reference-sync").onchange = () => {
     syncingEnabled = $("#reference-sync").checked;
     synchronize(api.views?.editor, referenceViewer);
+    if (syncingEnabled) sheetViewport.set(api.sheetViewport.get(), false);
     persist();
   };
   $("#reference-visibility-sync").checked = visibilitySync;
@@ -865,6 +862,7 @@ export function setupReferences(api) {
     api.notify("합성을 적용했습니다. 실행 취소로 되돌릴 수 있습니다.");
   };
   if (!api.views) view2d = true;
+  if (syncingEnabled) sheetViewport.set(api.sheetViewport.get(), false);
   renderPinned();
   renderList();
   updateLayout(false);

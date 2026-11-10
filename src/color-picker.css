@@ -1,26 +1,3 @@
-@media (min-width: 701px) {
-  #stage .toolbar {
-    left: 8px;
-    top: 45px;
-    display: grid;
-    grid-template-columns: repeat(2, 39px);
-  }
-  #stage .tool-divider {
-    display: none;
-  }
-  #stage .inline-color-picker {
-    width: 180px;
-    bottom: 55px;
-  }
-  #stage:has(#texture-wrap:not([hidden])) #texture-wrap {
-    left: 235px;
-    right: 0;
-  }
-  #stage:has(#texture-wrap:not([hidden])) .inline-color-picker {
-    left: 8px;
-    right: auto;
-  }
-}
 .inline-color-picker {
   position: absolute;
   left: 8px;

@@ -4,7 +4,6 @@ import {
   SIZE,
   History,
   createStarter,
-  faces,
   locate,
   pixel,
   putPixel,
@@ -18,6 +17,7 @@ import { readSkinPng } from "./reference-data.js";
 import { setupWorkspaceUI } from "./workspace-ui.js";
 import { createColorPicker } from "./color-picker.js";
 import { setupToolButtons, fillFace, shadePixel } from "./tools.js";
+import { drawAtlas, createAtlasViewport } from "./atlas.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -48,7 +48,6 @@ let previous = null;
 let hovered = null;
 let saveTimer;
 let toastTimer;
-let sheetZoom = 1;
 let recent = [];
 let paused = false;
 const shadedPixels = new Set();
@@ -113,56 +112,14 @@ function restore() {
 }
 function drawSheet() {
   const scale = sheet.width / SIZE;
-  sheetContext.clearRect(0, 0, sheet.width, sheet.height);
-  sheetContext.imageSmoothingEnabled = false;
-  sheetContext.drawImage(source, 0, 0, sheet.width, sheet.height);
-  for (const layer of ["base", "overlay"]) {
-    if (layer === "base" ? state.baseVisible : state.overlayVisible) continue;
-    for (const part of Object.keys(PARTS))
-      for (const r of faces(part, layer, state.model))
-        sheetContext.clearRect(
-          r.x * scale,
-          r.y * scale,
-          r.w * scale,
-          r.h * scale,
-        );
-  }
-  sheetContext.fillStyle = "rgba(10,15,22,.65)";
-  sheetContext.fillRect(0, 0, sheet.width, sheet.height);
-  for (const part of state.visible) {
-    if (state.layer === "base" ? !state.baseVisible : !state.overlayVisible)
-      continue;
-    for (const region of faces(part, state.layer, state.model)) {
-      const { x, y, w, h } = region;
-      sheetContext.clearRect(x * scale, y * scale, w * scale, h * scale);
-      sheetContext.drawImage(
-        source,
-        x,
-        y,
-        w,
-        h,
-        x * scale,
-        y * scale,
-        w * scale,
-        h * scale,
-      );
-      sheetContext.strokeStyle = "rgba(130,225,198,.7)";
-      sheetContext.lineWidth = 2;
-      sheetContext.strokeRect(x * scale, y * scale, w * scale, h * scale);
-    }
-  }
-  if (state.grid) {
-    sheetContext.strokeStyle = "rgba(180,200,210,.15)";
-    sheetContext.lineWidth = 1;
-    sheetContext.beginPath();
-    for (let i = 0; i <= SIZE; i++) {
-      sheetContext.moveTo(i * scale, 0);
-      sheetContext.lineTo(i * scale, sheet.height);
-      sheetContext.moveTo(0, i * scale);
-      sheetContext.lineTo(sheet.width, i * scale);
-    }
-    sheetContext.stroke();
-  }
+  drawAtlas(sheetContext, source, {
+    parts: [...state.visible],
+    layers: ["base", "overlay"].filter((layer) =>
+      layer === "base" ? state.baseVisible : state.overlayVisible,
+    ),
+    model: state.model,
+    grid: state.grid,
+  });
   if (hovered) {
     sheetContext.strokeStyle = "#fff";
     sheetContext.lineWidth = 2;
@@ -289,6 +246,11 @@ function hover(hit) {
   drawSheet();
 }
 setupToolButtons();
+const sheetViewport = createAtlasViewport(
+  $("#texture-wrap"),
+  sheet,
+  () => state.tool === "rotate",
+);
 for (const canvas of [$("#editor-canvas"), sheet]) {
   canvas.addEventListener("contextmenu", (event) => event.preventDefault());
   canvas.addEventListener("pointerdown", (event) => {
@@ -423,31 +385,20 @@ $("#grid").onchange = (event) => {
   state.grid = event.target.checked;
   views?.setGrid(state.grid);
   drawSheet();
+  referenceTools?.refresh();
 };
 $("#undo").onclick = () => applyHistory("undo");
 $("#redo").onclick = () => applyHistory("redo");
 function zoom(factor) {
   if (state.view === "3d") views?.zoom(factor);
-  else {
-    sheetZoom = Math.max(1, Math.min(4, sheetZoom / factor));
-    sheet.style.width = `${sheetZoom * 100}%`;
-  }
+  else sheetViewport.zoom(1 / factor);
 }
 $("#zoom-in").onclick = () => zoom(0.85);
 $("#zoom-out").onclick = () => zoom(1.15);
 $("#reset-view").onclick = () => {
   views?.reset();
-  sheetZoom = 1;
-  sheet.style.width = "100%";
+  sheetViewport.reset();
 };
-$("#texture-wrap").addEventListener(
-  "wheel",
-  (event) => {
-    event.preventDefault();
-    zoom(event.deltaY > 0 ? 1.1 : 0.9);
-  },
-  { passive: false },
-);
 $("#new-skin").onclick = () => {
   if (
     !confirm(
@@ -574,6 +525,7 @@ try {
 refresh();
 scheduleSave();
 referenceTools = setupReferences({
+  sheetViewport,
   state,
   views,
   notify,

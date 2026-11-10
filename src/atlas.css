@@ -1,0 +1,30 @@
+#stage #texture-wrap.atlas-viewport,
+.reference-stage .reference-sheet-wrap.atlas-viewport {
+  position: absolute;
+  inset: 40px 12px 55px;
+  height: auto;
+  width: auto;
+  overflow: hidden;
+  padding: 0;
+  display: block;
+  touch-action: none;
+}
+.atlas-viewport #texture-canvas,
+.atlas-viewport #ref-sheet {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+  background: conic-gradient(
+      #344255 25%,
+      #243141 0 50%,
+      #344255 0 75%,
+      #243141 0
+    )
+    0 / 16px 16px;
+}
+.atlas-viewport.atlas-dragging canvas {
+  cursor: grabbing;
+}

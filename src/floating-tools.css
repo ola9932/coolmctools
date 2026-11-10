@@ -63,12 +63,6 @@
 #ref-storage-status:empty {
   display: none;
 }
-@media (min-width: 701px) {
-  #stage #texture-wrap {
-    left: 220px;
-    right: 0;
-  }
-}
 @media (max-width: 700px) {
   .floating-tools {
     width: 180px;

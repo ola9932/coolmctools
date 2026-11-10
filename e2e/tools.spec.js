@@ -10,6 +10,12 @@ test("face paint and shading are undoable and only shade once per stroke", async
     );
   const initial = await data();
   await page.locator('[data-view="2d"]').click();
+  // Move the floating tools off the atlas pixels exercised below.
+  const handle = await page.locator(".tools-drag-handle").boundingBox();
+  await page.mouse.move(handle.x + 60, handle.y + 15);
+  await page.mouse.down();
+  await page.mouse.move(handle.x + 510, handle.y + 15, { steps: 5 });
+  await page.mouse.up();
   await page.locator("#picker-hex").fill("#804020");
   await page.locator("#picker-hex").press("Tab");
   const point = async () => {
