@@ -59,7 +59,19 @@ test("one-page references preserve editing, compose reversibly, extract colors a
         Math.abs(a.width - b.width),
       );
     })
-    .toBeLessThan(2);
+    .toBeLessThan(1);
+  await page.locator("#reference-pick").click();
+  await expect(page.locator(".reference-panel")).toHaveClass(/is-picking/);
+  const refBounds = await page.locator("#ref-canvas").boundingBox();
+  await page.mouse.move(
+    refBounds.x + refBounds.width / 2,
+    refBounds.y + refBounds.height / 2,
+  );
+  await expect(page.locator(".pixel-magnifier")).toBeVisible();
+  await expect(page.locator(".pixel-magnifier span")).toContainText("3D");
+  await page.locator("#reference-pick").click();
+  await expect(page.locator(".reference-panel")).not.toHaveClass(/is-picking/);
+  await expect(page.locator(".pixel-magnifier")).toBeHidden();
   await page.locator("#reference-view").click();
   const sample = () =>
     page

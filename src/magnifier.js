@@ -12,24 +12,41 @@ export function createMagnifier(source) {
     hide() {
       element.hidden = true;
     },
-    show(event, point) {
+    show(event, point, viewer = null) {
       if (!point) {
         element.hidden = true;
         return;
       }
       context.clearRect(0, 0, 126, 126);
       context.imageSmoothingEnabled = false;
-      context.drawImage(
-        source,
-        -(point.x - 3) * 18,
-        -(point.y - 3) * 18,
-        64 * 18,
-        64 * 18,
-      );
+      if (viewer) {
+        viewer.render();
+        const surface = event.currentTarget;
+        const bounds = surface.getBoundingClientRect();
+        const scale = surface.width / bounds.width;
+        context.drawImage(
+          surface,
+          (event.clientX - bounds.left - 21) * scale,
+          (event.clientY - bounds.top - 21) * scale,
+          42 * scale,
+          42 * scale,
+          0,
+          0,
+          126,
+          126,
+        );
+      } else
+        context.drawImage(
+          source,
+          -(point.x - 3) * 18,
+          -(point.y - 3) * 18,
+          64 * 18,
+          64 * 18,
+        );
       context.strokeStyle = "#fff";
       context.lineWidth = 2;
       context.strokeRect(54, 54, 18, 18);
-      label.textContent = `${point.x}, ${point.y} · 18×`;
+      label.textContent = `${point.x}, ${point.y} · ${viewer ? "3D · 3×" : "18×"}`;
       element.hidden = false;
       const left =
         event.clientX + 22 + 142 > innerWidth

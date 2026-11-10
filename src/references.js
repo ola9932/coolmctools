@@ -107,21 +107,19 @@ export function setupReferences(api) {
     if (comparing) {
       const controlsHeight =
         $(".editing-controls")?.getBoundingClientRect().height || 0;
-      const naturalHeight = [...top.children].reduce(
-        (sum, child) => sum + child.getBoundingClientRect().height,
-        0,
-      );
-      const totalHeight = Math.max(naturalHeight, 58 + controlsHeight);
-      top.style.minHeight = `${totalHeight}px`;
+      const headHeight = Math.max(58, $(".reference-head").scrollHeight);
+      workspace.style.setProperty("--compare-row-height", `${headHeight}px`);
+      $(".reference-controls").style.minHeight = `${controlsHeight}px`;
+      top.style.minHeight = "";
       workspace.style.setProperty(
         "--compare-stage-height",
         `${$("#stage").clientHeight}px`,
       );
-      workspace.style.setProperty(
-        "--compare-header-height",
-        `${totalHeight - controlsHeight}px`,
-      );
-    } else top.style.minHeight = "";
+      workspace.style.setProperty("--compare-header-height", `${headHeight}px`);
+    } else {
+      top.style.minHeight = "";
+      $(".reference-controls").style.minHeight = "";
+    }
   }
   const comparisonObserver = new ResizeObserver(alignComparison);
   comparisonObserver.observe($("#stage"));
@@ -341,6 +339,7 @@ export function setupReferences(api) {
   function syncReference() {
     magnifier.hide();
     const item = current();
+    $(".reference-panel").classList.toggle("is-picking", picking && !!item);
     if (item) {
       context.putImageData(new ImageData(item.data, 64, 64), 0, 0);
       ensureViewer();
@@ -532,7 +531,7 @@ export function setupReferences(api) {
     return null;
   }
   $("#ref-canvas").addEventListener("pointermove", (event) =>
-    magnifier.show(event, referencePoint(event)),
+    magnifier.show(event, referencePoint(event), referenceViewer),
   );
   $("#ref-canvas").addEventListener("pointerleave", () => magnifier.hide());
   $("#ref-canvas").addEventListener("pointerdown", (event) => {

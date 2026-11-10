@@ -1,15 +1,29 @@
 @media (min-width: 701px) {
+  #stage .toolbar {
+    left: 8px;
+    top: 45px;
+    display: grid;
+    grid-template-columns: repeat(2, 39px);
+  }
+  #stage .tool-divider {
+    display: none;
+  }
+  #stage .inline-color-picker {
+    width: 180px;
+    bottom: 55px;
+  }
   #stage:has(#texture-wrap:not([hidden])) #texture-wrap {
-    right: 235px;
+    left: 235px;
+    right: 0;
   }
   #stage:has(#texture-wrap:not([hidden])) .inline-color-picker {
-    left: auto;
-    right: 16px;
+    left: 8px;
+    right: auto;
   }
 }
 .inline-color-picker {
   position: absolute;
-  left: 80px;
+  left: 8px;
   bottom: 70px;
   width: 202px;
   z-index: 5;
@@ -27,6 +41,9 @@
   gap: 8px;
   align-items: center;
   margin-bottom: 9px;
+}
+.picker-recent #recent-colors:not(:has(button)) {
+  display: block;
 }
 .picker-swatch {
   width: 28px;
